@@ -22,9 +22,9 @@ npm install --save rc-redux-model
 // createStore.js
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import models from './models'
-import ReduxModel from 'rc-redux-model'
+import RcReduxModel from 'rc-redux-model'
 
-const models = new ReduxModel(models)
+const models = new RcReduxModel(models)
 const rootReducers = combineReducers(models.reducers)
 const rootMiddleWare = [models.createThunkMiddleWare()]
 
@@ -36,7 +36,7 @@ return createStore(rootReducers, applyMiddleware(...rootMiddleWare))
 如果你安装了 `react-redux`，那么建议你这么使用
 
 ```js
-// App.js
+// 在根组件App.js引入store
 import store from './createStore'
 import { Provider } from 'react-redux'
 
@@ -48,9 +48,10 @@ function App() {
 当然，如果你没安装 `react-redux`, 那你只能在组件(页面)中这么使用了
 
 ```js
+// 各页面引入store，通过 store.getState()[namespace] 获取对应的state
 import store from './createStore';
 
-class MyComponent from React.Component {
+class UserComponent from React.Component {
   constructor(props) {
     this.dispatch = store.dispatch();
     this.userModel = store.getState().userReducer;
@@ -67,10 +68,10 @@ this.props
     type: 'userModel/fetchUserInfo',
   })
   .then((result) => {
-    console.log('success', d)
+    console.log('success', result)
   })
-  .catch((e) => {
-    console.log('catch', e)
+  .catch((error) => {
+    console.log('catch', error)
   })
 
 // 没有安装 react-redux
@@ -80,10 +81,10 @@ this.dispatch({
   type: 'userModel/fetchUserInfo',
 })
   .then((result) => {
-    console.log('success', d)
+    console.log('success', result)
   })
-  .catch((e) => {
-    console.log('catch', e)
+  .catch((error) => {
+    console.log('catch', error)
   })
 ```
 
@@ -117,7 +118,7 @@ this.dispatch({
 yep，`rc-redux-model` 同样支持 hooks，我们提供一个 API，现在，让我们看看如何使用它~~
 
 ```js
-// userModel.js
+// models/userModel.js
 import { createReduxModelHooks } from 'rc-redux-model'
 
 const userModel = {
@@ -149,13 +150,15 @@ import {
   useSelectorModel,
 } from './models/userModel'
 
-const [userInfo, changeUserInfo] = useCreateFunctionModel() // return userInfo state and change userInfo function
+function UserComponent() {
+  const [userInfo, changeUserInfo] = useCreateFunctionModel() // return userInfo state and change userInfo function
 
-// get userModel(namespace) state value
-const userInfo = useSelectorModel('userModel/userInfo') // userInfo state value
-const userLoading = useSelectorModel('userModel/loading') // loading state value
+  // get userModel(namespace) state value
+  const userInfo = useSelectorModel('userModel/userInfo') // userInfo state value
+  const userLoading = useSelectorModel('userModel/loading') // loading state value
 
-// create a method to modify userModel(namespace) state value
-const changeUserInfo = useMethodToChangeModel('userModel/userInfo') // change userInfo state value
-const changeUserLoading = useMethodToChangeModel('userModel/loading') // change loading state value
+  // create a method to modify userModel(namespace) state value
+  const changeUserInfo = useMethodToChangeModel('userModel/userInfo') // change userInfo state value
+  const changeUserLoading = useMethodToChangeModel('userModel/loading') // change loading state value
+}
 ```

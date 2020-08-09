@@ -22,9 +22,9 @@ npm install --save rc-redux-model
 // createStore.js
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import models from './models'
-import ReduxModel from 'rc-redux-model'
+import RcReduxModel from 'rc-redux-model'
 
-const models = new ReduxModel(models)
+const models = new RcReduxModel(models)
 const rootReducers = combineReducers(models.reducers)
 const rootMiddleWare = [models.createThunkMiddleWare()]
 
@@ -36,7 +36,7 @@ return createStore(rootReducers, applyMiddleware(...rootMiddleWare))
 If you have `react-redux` installed, it is recommended that you use it
 
 ```js
-// App.js
+// In the root component App.js import store
 import store from './createStore'
 import { Provider } from 'react-redux'
 
@@ -48,9 +48,10 @@ function App() {
 Of course, if you don't have `react-redux` installed, you can only use it in components
 
 ```js
+// Store is introduced into each page, and through store.getState () [namespace] gets the current state
 import store from './createStore';
 
-class MyComponent from React.Component {
+class UserComponent from React.Component {
   constructor(props) {
     this.dispatch = store.dispatch();
     this.userModel = store.getState().userReducer;
@@ -58,7 +59,7 @@ class MyComponent from React.Component {
 }
 ```
 
-3. Send an asynchronous request
+3. how to send an asynchronous request
 
 ```js
 // have react-redux installed
@@ -67,10 +68,10 @@ this.props
     type: 'userModel/fetchUserInfo',
   })
   .then((result) => {
-    console.log('success', d)
+    console.log('success', result)
   })
-  .catch((e) => {
-    console.log('catch', e)
+  .catch((error) => {
+    console.log('catch', error)
   })
 
 // don't have react-redux
@@ -80,10 +81,10 @@ this.dispatch({
   type: 'userModel/fetchUserInfo',
 })
   .then((result) => {
-    console.log('success', d)
+    console.log('success', result)
   })
-  .catch((e) => {
-    console.log('catch', e)
+  .catch((error) => {
+    console.log('catch', error)
   })
 ```
 
@@ -116,7 +117,7 @@ On top of it, we can see `type: 'userModel/fetchUserInfo'`
 yep，`rc-redux-model` also supports hooks，We provide API properties，Now, let's see how to use it
 
 ```js
-// userModel.js
+// models/userModel.js
 import { createReduxModelHooks } from 'rc-redux-model'
 
 const userModel = {
@@ -148,13 +149,15 @@ import {
   useSelectorModel,
 } from './models/userModel'
 
-const [userInfo, changeUserInfo] = useCreateFunctionModel() // return userInfo state and change userInfo function
+function UserComponent() {
+  const [userInfo, changeUserInfo] = useCreateFunctionModel() // return userInfo state and change userInfo function
 
-// get userModel(namespace) state value
-const userInfo = useSelectorModel('userModel/userInfo') // userInfo state value
-const userLoading = useSelectorModel('userModel/loading') // loading state value
+  // get userModel(namespace) state value
+  const userInfo = useSelectorModel('userModel/userInfo') // userInfo state value
+  const userLoading = useSelectorModel('userModel/loading') // loading state value
 
-// create a method to modify userModel(namespace) state value
-const changeUserInfo = useMethodToChangeModel('userModel/userInfo') // change userInfo state value
-const changeUserLoading = useMethodToChangeModel('userModel/loading') // change loading state value
+  // create a method to modify userModel(namespace) state value
+  const changeUserInfo = useMethodToChangeModel('userModel/userInfo') // change userInfo state value
+  const changeUserLoading = useMethodToChangeModel('userModel/loading') // change loading state value
+}
 ```
