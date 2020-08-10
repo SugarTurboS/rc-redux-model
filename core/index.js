@@ -2,7 +2,7 @@ import invariant from 'invariant'
 
 class RcReduxModel {
   constructor(models) {
-    this.models = []
+    this.models = {}
     this.reducers = {}
     this.makeReduxModel(models)
   }
@@ -22,17 +22,18 @@ class RcReduxModel {
     // 得到 reducer 中的所有 actionType
     const reducerActionTypes = Object.keys(reducers)
 
+    // reducer 都是得到一个 (state, action)，根据 action.type 进行 switch/case
     return (storeState, storeAction) => {
       const newState = storeState || state
-      const actionStringLength = storeAction.type.split('/')
-      if (actionStringLength > 2) {
+      const reducerActionTypeKeys = storeAction.type.split('/')
+      if (reducerActionTypeKeys > 2) {
         invariant(
-          actionStringLength > 2,
+          reducerActionTypeKeys > 2,
           `model's reducers type only accepts ['namespace/reducerName'] , for example ['userModel/getUserInfo']`
         )
       }
-      const reducerModelName = actionStringLength[0] // model.namespace
-      const reducerSelfName = actionStringLength[1] // reducerName
+      const reducerModelName = reducerActionTypeKeys[0] // eg. model.namespace = userModel
+      const reducerSelfName = reducerActionTypeKeys[1] // eg. reducerName = getUserInfo
       if (reducerModelName !== namespace) return newState
       if (reducerActionTypes.includes(reducerSelfName))
         return reducers[reducerSelfName](newState, storeAction.type)
@@ -68,7 +69,7 @@ class RcReduxModel {
       // 将每个 model 都注入 this.models
       this.registerModel(model)
       // 处理每个 model 的 reducer，然后添加至 this.reducers 中
-      this.registerReducer(model)
+      this.reducers[model.namespace] = this.registerReducer(model)
     })
   }
 }
