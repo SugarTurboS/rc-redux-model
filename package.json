@@ -1,0 +1,34 @@
+{
+  "name": "rc-redux-model",
+  "version": "1.0.0",
+  "description": "react状态管理，借鉴dva思想，像写dva一样处理数据流方案，支持hooks",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PDKSophia/rc-redux-model.git"
+  },
+  "keywords": [
+    "dva",
+    "react",
+    "redux",
+    "model"
+  ],
+  "author": "彭道宽",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PDKSophia/rc-redux-model/issues"
+  },
+  "homepage": "https://github.com/PDKSophia/rc-redux-model#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.11.1",
+    "@babel/preset-env": "^7.11.0",
+    "@babel/preset-react": "^7.10.4"
+  },
+  "dependencies": {
+    "invariant": "^2.2.4"
+  }
+}
