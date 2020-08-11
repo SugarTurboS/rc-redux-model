@@ -1,10 +1,13 @@
 import invariant from 'invariant'
+import middleware from './middleware'
 
 class RcReduxModel {
   constructor(models) {
     this.models = {}
     this.reducers = {}
+    this.thunk = []
     this.makeReduxModel(models)
+    this.makeThunkMiddleWare(models)
   }
 
   registerModel(model) {
@@ -13,12 +16,7 @@ class RcReduxModel {
 
   registerReducer(model) {
     const { namespace, state, reducers } = model
-    if (!reducers) {
-      invariant(
-        !reducers,
-        `model's reducers must be defined, but got undefined`
-      )
-    }
+    invariant(!reducers, `model's reducers must be defined, but got undefined`)
     // 得到 reducer 中的所有 actionType
     const reducerActionTypes = Object.keys(reducers)
 
@@ -26,12 +24,10 @@ class RcReduxModel {
     return (storeState, storeAction) => {
       const newState = storeState || state
       const reducerActionTypeKeys = storeAction.type.split('/')
-      if (reducerActionTypeKeys > 2) {
-        invariant(
-          reducerActionTypeKeys > 2,
-          `model's reducers type only accepts ['namespace/reducerName'] , for example ['userModel/getUserInfo']`
-        )
-      }
+      invariant(
+        reducerActionTypeKeys > 2,
+        `model's reducers type only accepts ['namespace/reducerName'] , for example ['userModel/getUserInfo']`
+      )
       const reducerModelName = reducerActionTypeKeys[0] // eg. model.namespace = userModel
       const reducerSelfName = reducerActionTypeKeys[1] // eg. reducerName = getUserInfo
       if (reducerModelName !== namespace) return newState
@@ -45,16 +41,12 @@ class RcReduxModel {
   makeReduxModel(models) {
     models.forEach((model) => {
       // 对于无命名空间的，invariant 警告
-      if (!model.namespace) {
-        invariant(!model.namespace, `model's namespace is undefined`)
-      }
+      invariant(!model.namespace, `model's namespace is undefined`)
       // 命名空间必须是字符串
-      if (model.namespace && typeof model.namespace !== 'string') {
-        invariant(
-          model.namespace !== 'string',
-          `model's namespace should be string, but got ${typeof model.namespace} !`
-        )
-      }
+      invariant(
+        model.namespace !== 'string',
+        `model's namespace should be string, but got ${typeof model.namespace} !`
+      )
       // 有且只有唯一的 model namespace
       if (process.env.NODE_ENV === 'development') {
         const repeatModel = models.filter(
@@ -71,5 +63,9 @@ class RcReduxModel {
       // 处理每个 model 的 reducer，然后添加至 this.reducers 中
       this.reducers[model.namespace] = this.registerReducer(model)
     })
+  }
+
+  makeThunkMiddleWare(models) {
+    this.thunk = middleware(models)
   }
 }
