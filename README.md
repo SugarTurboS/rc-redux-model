@@ -8,6 +8,8 @@
 
 简体中文 | [English](./README.en.md)
 
+在此之前，你可以了解一下，[🌈 为什么会存在 rc-redux-model 这个库 ?](./REASON.md)
+
 ## 安装
 
 ```bash

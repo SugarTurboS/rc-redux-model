@@ -1,12 +1,12 @@
 # rc-redux-model
 
 <img src="https://img.shields.io/badge/rc--redux--modal-v0.0.1-blue" />
-
 <img src="https://img.shields.io/badge/redux-^4.0.1-yellow" />
-
 <img src="https://img.shields.io/badge/author-PDK-inactive" />
 
 [简体中文](./README.md) | English
+
+Before that, you can understand [🌈 why rc-redux-model exists ?](./REASON.en.md)
 
 ## install
 

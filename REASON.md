@@ -1,27 +1,25 @@
 # rc-redux-model
 
 <img src="https://img.shields.io/badge/rc--redux--modal-v0.0.1-blue" />
-
 <img src="https://img.shields.io/badge/redux-^4.0.1-yellow" />
-
 <img src="https://img.shields.io/badge/author-PDK-inactive" />
 
 ## 背景
 
-为什么会有 `rc-redux-model` 这个库呢？以我为例，作为一名菜鸡工程师，我每次写一个项目，我都需要 ...
+为什么会有 `rc-redux-model` 这个库呢？以我为例，作为一名 react CV 工程师，我每次写一个项目，我都需要 ...
 
-- create-react-app 起一个项目
-- 安装 react-redux ，调用 Provider 提供者模式，使得自组件都能取到 store 值
-- 安装 redux-thunk ，使得我们能够编写异步 action creator，它返回的是函数，而不是对象
-- 安装 redux-saga ，解决请求异步处理
-- 如果想看到日志，那么我还会安装 redux-logger
+- `create-react-app` 起一个项目
+- 安装 `react-redux` ，调用 Provider 提供者模式，使得自组件都能取到 store 值
+- 安装 `redux-thunk` ，使得我们能够编写异步 action creator，它返回的是函数，而不是对象
+- 安装 `redux-saga` ，解决请求异步处理
+- 如果想看到日志，那么我还会安装 `redux-logger`
 - ....
 
 我绝 b 没有吐槽的意思哈～ 当我把上边的库都安装完了之后，我开始撸需求了，于是乎... 我感觉我又遇到了一些问题，比如 :
 
 1. 低下的异步处理能力
 
-redux 默认只支持同步操作，让使用者自行选择异步处理方法，对于异步请求 redux 是无能为力的。这时候 redux-saga 就发挥它的左右了，but，又遇到个小问题了，那就是 ES6 的 `Generator 函数的语法`，这让初次使用 saga 的小伙伴心生疑惑，相比 `generator yield` ，我想大家对 `async/await`、`Promise` 的语法会更加熟悉点吧？
+redux 默认只支持同步操作，让使用者自行选择异步处理方法，对于异步请求 redux 是无能为力的。这时候 redux-saga 就发挥它的左右了。but，又遇到个小问题了，那就是 ES6 的 `Generator 函数的语法`，这让初次使用 saga 的小伙伴心生疑惑，相比 `generator yield` ，我想大家对 `async/await`、`Promise` 的语法会更加熟悉点吧？
 
 2. 异步请求状态
 
@@ -45,7 +43,7 @@ onFetchUserInfo = async () => {
 }
 ```
 
-CV 工程师莫过于我了，那么能不能把它封装起来呢？等价于，每次请求都能给我返回一个 `loading status`，“我用不用是我的事，但是你得提供给我啊”
+CV 工程师莫过于我了，那么能不能把它封装起来呢？等价于，每次请求都能给我返回一个 `loading status`
 
 3. 啰嗦的样板代码
 
