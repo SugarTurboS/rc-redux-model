@@ -7,30 +7,28 @@ class RcReduxModel {
     this.reducers = {}
     this.thunk = []
     this.makeReduxModel(models)
-    this.makeThunkMiddleWare(models)
   }
 
   registerModel(model) {
     if (!this.models[model]) this.models[model.namespace] = model
   }
 
-  registerReducer(model) {
-    const { namespace, state, reducers } = model
-    invariant(!reducers, `model's reducers must be defined, but got undefined`)
+  registerReducer(namespace, defaultState, reducers) {
+    invariant(reducers, `model's reducers must be defined, but got undefined`)
+
     // 得到 reducer 中的所有 actionType
+    // reducer 都是得到一个 (state, action)，根据 action.type 进行 switch/case
     const reducerActionTypes = Object.keys(reducers)
 
-    // reducer 都是得到一个 (state, action)，根据 action.type 进行 switch/case
     return (storeState, storeAction) => {
-      const newState = storeState || state
+      const newState = storeState || defaultState
       const reducerActionTypeKeys = storeAction.type.split('/')
-      invariant(
-        reducerActionTypeKeys > 2,
-        `model's reducers type only accepts ['namespace/reducerName'] , for example ['userModel/getUserInfo']`
-      )
-      const reducerModelName = reducerActionTypeKeys[0] // eg. model.namespace = userModel
-      const reducerSelfName = reducerActionTypeKeys[1] // eg. reducerName = getUserInfo
+
+      const reducerModelName = reducerActionTypeKeys[0]
+      const reducerSelfName = reducerActionTypeKeys[1]
+
       if (reducerModelName !== namespace) return newState
+
       if (reducerActionTypes.includes(reducerSelfName))
         return reducers[reducerSelfName](newState, storeAction.type)
 
@@ -41,7 +39,7 @@ class RcReduxModel {
   makeReduxModel(models) {
     models.forEach((model) => {
       // 对于无命名空间的，invariant 警告
-      invariant(!model.namespace, `model's namespace is undefined`)
+      invariant(model.namespace, `model's namespace is undefined`)
       // 命名空间必须是字符串
       invariant(
         model.namespace !== 'string',
@@ -61,11 +59,18 @@ class RcReduxModel {
       // 将每个 model 都注入 this.models
       this.registerModel(model)
       // 处理每个 model 的 reducer，然后添加至 this.reducers 中
-      this.reducers[model.namespace] = this.registerReducer(model)
+      this.reducers[model.namespace] = this.registerReducer(
+        model.namespace,
+        model.state,
+        model.reducers
+      )
     })
   }
 
-  makeThunkMiddleWare(models) {
-    this.thunk = middleware(models)
+  makeThunkMiddleWare() {
+    this.thunk = middleware(this.models)
+    return this.thunk
   }
 }
+
+export default RcReduxModel
