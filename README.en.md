@@ -26,9 +26,9 @@ import RcReduxModel from 'rc-redux-model'
 
 const models = new RcReduxModel(models)
 const rootReducers = combineReducers(models.reducers)
-const rootMiddleWare = [models.createThunkMiddleWare()]
+const rootMiddleWare = models.createThunkMiddleWare()
 
-return createStore(rootReducers, applyMiddleware(...rootMiddleWare))
+return createStore(rootReducers, applyMiddleware(rootMiddleWare))
 ```
 
 2. Using in the page

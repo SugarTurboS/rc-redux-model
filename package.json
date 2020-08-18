@@ -4,7 +4,8 @@
   "description": "react状态管理，借鉴dva思想，像写dva一样处理数据流方案，支持hooks",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "demo": "node ./demo/index.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -26,9 +27,12 @@
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.1",
     "@babel/preset-env": "^7.11.0",
-    "@babel/preset-react": "^7.10.4"
+    "@babel/preset-react": "^7.10.4",
+    "babel-jest": "^26.3.0",
+    "jest": "^26.4.0"
   },
   "dependencies": {
-    "invariant": "^2.2.4"
+    "invariant": "^2.2.4",
+    "redux": "^4.0.5"
   }
 }
