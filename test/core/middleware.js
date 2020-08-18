@@ -32,6 +32,8 @@ const call = (dispatch) => async (service, params) => {
 }
 
 const createMiddleWare = (models) => {
+  // 每一个中间件都需要当前的 store 和下一个 dispatch
+  // next 为下一个 dispatch，action为消息类型，改变store数据的唯一来源
   return (store) => (next) => (action) => {
     const { dispatch, getState } = store // 获取redux提供的API
     const actionTypeKeys = action.type.split('/')
