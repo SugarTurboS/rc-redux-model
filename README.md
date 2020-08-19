@@ -26,9 +26,9 @@ import { createStore, applyMiddleware, combineReducers } from 'redux'
 import models from './models'
 import RcReduxModel from 'rc-redux-model'
 
-const models = new RcReduxModel(models)
-const rootReducers = combineReducers(models.reducers)
-const rootMiddleWare = models.createThunkMiddleWare()
+const reduxModel = new RcReduxModel(models)
+const rootReducers = combineReducers(reduxModel.reducers)
+const rootMiddleWare = reduxModel.createThunkMiddleWare()
 
 return createStore(rootReducers, applyMiddleware(rootMiddleWare))
 ```

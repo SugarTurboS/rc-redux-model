@@ -52,8 +52,8 @@ class RcReduxModel {
         )
 
         invariant(
-          repeatModel.length > 1,
-          `model namespace should be unique, but got length = ${repeatModel.length}`
+          repeatModel.length <= 1,
+          `model namespace should be unique, but got length = ${repeatModel.length}, with the same namespace is ${model.namespace}`
         )
       }
       // 将每个 model 都注入 this.models
