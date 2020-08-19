@@ -4,13 +4,12 @@ const getUserInfo = (payload) => {
     job: 'CVTE FE',
   }
   return new Promise((resolve, reject) => {
-    setTimeout(
+    setTimeout(() => {
       resolve({
         code: 0,
         data: user,
-      }),
-      2000
-    )
+      })
+    }, 2000)
   })
 }
 module.exports = getUserInfo

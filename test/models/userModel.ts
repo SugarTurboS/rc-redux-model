@@ -1,4 +1,4 @@
-const getUserInfo = require('./request')
+const request = require('./request')
 
 const userModel = {
   namespace: 'userModel',
@@ -8,11 +8,12 @@ const userModel = {
     },
   },
   action: {
-    getUserName: (payload, { state }) => {
+    getUserName: ({ getState }) => {
+      const state = getState()['userModel']
       return state
     },
-    fetchUserInfo: async (payload, { commit, call }) => {
-      let res = await call(getUserInfo, payload)
+    fetchUserInfo: async ({ commit, call }) => {
+      let res = await call(request, null)
       if (res.code === 0) {
         commit({
           type: 'changeUserInfo',

@@ -11,16 +11,15 @@ describe('rc-redux-model init success', () => {
 
   // 获取 rc-redux-models
   const reduxModels = new RcReduxModel(models)
-  // 获取 reducers 与 models
+  // 获取 reducers 、 models 、 thunk
   const _rootModels = reduxModels.models
   const _rootReducer = combineReducer(reduxModels.reducers)
-  // 获取中间件
-  const _middleware = reduxModels.makeThunkMiddleWare()
+  const _rootThunk = reduxModels.thunk
 
   // 生成 store 实例
-  const store = createStore(_rootReducer, applyMiddleware(_middleware))
+  const store = createStore(_rootReducer, applyMiddleware(_rootThunk))
 
-  const _nextHandler = _middleware(store)
+  const _nextHandler = _rootThunk(store)
 
   it('reduxModels must be a object', () => {
     expect(typeof reduxModels).toEqual('object')

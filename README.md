@@ -185,7 +185,7 @@ export default [userModel, exampleModel, yourModel]
 // createStore.js
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import models from './models'
-import RcReduxModel from 'rc-redux-model'
+import RcReduxModel from 'rc-redux-model/lib/index'
 
 const reduxModel = new RcReduxModel(models)
 const _rootThunk = reduxModel.thunk
