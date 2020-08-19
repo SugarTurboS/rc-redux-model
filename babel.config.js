@@ -1,7 +1,7 @@
 module.exports = {
   presets: [
     [
-      '@babel/env',
+      '@babel/preset-env',
       {
         targets: {
           edge: '17',
@@ -12,5 +12,6 @@ module.exports = {
         useBuiltIns: 'usage',
       },
     ],
+    '@babel/preset-typescript',
   ],
 }
