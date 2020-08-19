@@ -6,7 +6,10 @@
 
 [简体中文](./README.md) | English
 
-Before that, you can understand [🌈 why rc-redux-model exists ?](./REASON.en.md)
+## how did it come from ?
+
+- [why rc-redux-model and what's rc-redux-model](./RcReduxModel.md)
+- [rc-redux-model design ideas and practices](./Design.md)
 
 ## install
 
@@ -16,7 +19,169 @@ npm install --save rc-redux-model
 
 ## usage
 
-1. register in middleware
+Before using, please read this description again, and then read the `complete example` to get started quickly
+
+> If you want to know how it came, you can check here : [why rc-redux-model and what's rc-redux-model](./RcReduxModel.md)
+
+### how to send an action
+
+```js
+const action = {
+  type: 'model.namespace/actionName',
+  payload: null,
+}
+
+this.props.dispatch(action)
+```
+
+As shown above, an `action` is composed of `type and payload`, and the naming rule of type is: `model.namespace/actionName`, such as: `userModel/fetchUserInfo`
+
+Please note that every action here is a function, that is, the idea of processing `synchronous action` is the same as processing `asynchronous action`.
+
+If you don’t understand, please move to: [rc-redux-model design ideas and practices](./Design.md)
+
+### who handles asynchronous requests
+
+In `model.action`, each action is a function, and the parameters it receives are:
+
+- dispatch: API provided by the store
+- getState: API provided by the store, from which you can get the latest state
+- currentAction: the current action of your this.props.dispatch, you can get `type` and `payload` from here
+- call: forward the request for you, and will use the Promise package at the same time, of course you can write your own asynchronous logic
+- commit: receive an action, the action.type corresponds to the action.type in the reducer, this method is used to dispatch to the reducers to modify the state value
+
+### model description
+
+Each `model` must have `namespace`, `state`, for `action` and `reducers`, it can be written or not
+
+`rc-redux-model` provides an attribute `autoRegisterDefaultAction`, when you set this attribute to `true`, it will automatically construct an action for you, which can directly modify the reducer, such as:
+
+```js
+export default {
+  namespace: 'userModel',
+  autoRegisterDefaultAction: true,
+  state: {},
+}
+
+// equivalent to:
+export default {
+  namespace: 'userModel',
+  autoRegisterDefaultAction: true,
+  state: {
+    testA: {},
+    testB: [],
+  },
+  action: {
+    defaultStoreLibProps: ({ currentAction, commit }) => {
+      commit({
+        type: 'DEFAULT_STORE_LIB_PROPS',
+        payload: currentAction.payload,
+      })
+    },
+  },
+  reducers: {
+    ['DEFAULT_STORE_LIB_PROPS'](state, payload) {
+      return {
+        ...state,
+        ...payload,
+      }
+    },
+  },
+}
+```
+
+On the business side, we call this action to modify testA and testB in the state
+
+```js
+this.props.dispatch({
+  type: 'userModel/defaultStoreLibProps',
+  payload: {
+    testA: { name: '111' },
+    testB: [22, 33, 44],
+  },
+})
+```
+
+---
+
+## complete example
+
+1. Create a new model folder, add a new `userModel.js` under the folder
+
+```js
+// model/userModel.js
+import adapter from '@common/adapter'
+
+const userModel = {
+  namespace: 'userModel',
+  autoRegisterDefaultAction: true,
+  state: {
+    userInfo: {
+      name: 'PDK',
+    },
+  },
+  action: {
+    // get state value
+    getUserName: ({ getState }) => {
+      const state = getState()['userModel']
+      return state.userInfo.name
+    },
+    // dispatch an action to modify reducers
+    storeInfo: ({ currentAction, commit }) => {
+      commit({
+        type: 'STORE_INFO',
+        payload: currentAction.payload,
+      })
+    },
+    // Start an asynchronous request, after the asynchronous request is over, modify reducers
+    fetchUserInfo: async ({
+      currentAction,
+      dispatch,
+      getState,
+      commit,
+      call,
+    }) => {
+      let res = await call(adapter.callAPI, params)
+      if (res.code === 0) {
+        commit({
+          type: 'CHANGE_USER_INFO',
+          payload: res.data,
+        })
+      }
+      return res
+    },
+  },
+  reducers: {
+    ['STORE_INFO'](state, payload) {
+      return {
+        ...state,
+        userInfo: { ...payload },
+      }
+    },
+    ['CHANGE_USER_INFO'](state, payload) {
+      return {
+        ...state,
+        userInfo: { ...payload },
+      }
+    },
+  },
+}
+
+export default userModel
+```
+
+2. Gather all models, please note that what is exported here is an **array**
+
+```js
+// model/index.js
+import userModel from './userModel'
+import exampleModel from './exampleModel'
+import yourModel from './yourModel'
+
+export default [userModel, exampleModel, yourModel]
+```
+
+3. Process models, register middleware
 
 ```js
 // createStore.js
@@ -25,139 +190,61 @@ import models from './models'
 import RcReduxModel from 'rc-redux-model'
 
 const reduxModel = new RcReduxModel(models)
-const rootReducers = combineReducers(reduxModel.reducers)
-const rootMiddleWare = reduxModel.createThunkMiddleWare()
+const _rootThunk = reduxModel.thunk
+const _rootReducers = reduxModel.reducers
 
-return createStore(rootReducers, applyMiddleware(rootMiddleWare))
+const reducerList = combineReducers(_rootReducers)
+return createStore(reducerList, applyMiddleware(_rootThunk))
 ```
 
-2. Using in the page
+4. Use in the page
 
-If you have `react-redux` installed, it is recommended that you use it
-
-```js
-// In the root component App.js import store
-import store from './createStore'
-import { Provider } from 'react-redux'
-
-function App() {
-  return <Provider store={store}></Provider>
-}
-```
-
-Of course, if you don't have `react-redux` installed, you can only use it in components
+Please note that **the actions here are all asynchronous actions**. Refer to `redux-thunk` for the implementation of internal middleware. That is to say, one of our `dispatch` and one `action` is a corresponding method. Look at the code:
 
 ```js
-// Store is introduced into each page, and through store.getState () [namespace] gets the current state
-import store from './createStore';
+import React from 'react'
+class MyComponents extends React.PureComponent {
+  componentDidMount() {
+    // demo1 : Get the user name in the state
+    // of course, it is not recommended to get the value of the state in this way
+    // it is recommended to get it through connect
+    const userName = this.props.dispatch({
+      type: 'userModel/getUserName',
+    })
 
-class UserComponent from React.Component {
-  constructor(props) {
-    this.dispatch = store.dispatch();
-    this.userModel = store.getState().userReducer;
+    // demo2 : Initiate a synchronous action to modify the value of reducers
+    this.props.dispatch({
+      type: 'userModel/storeInfo',
+      payload: {
+        name: '牛逼Plus',
+      },
+    })
+
+    // demo3 : Initiate an asynchronous action and modify the value of reducers after the request is completed
+    // The request is written by yourself in model.action, which supports Promise.
+    // Before we need to callback the data after the request, now you can get it directly by Promise.then()
+    this.props
+      .dispatch({
+        type: 'userModel/fetchUserInfo',
+      })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
   }
 }
 ```
 
-3. how to send an asynchronous request
+## Model API
 
-```js
-// have react-redux installed
-this.props
-  .dispatch({
-    type: 'userModel/fetchUserInfo',
-  })
-  .then((result) => {
-    console.log('success', result)
-  })
-  .catch((error) => {
-    console.log('catch', error)
-  })
+Each model receives 5 attributes, as follows
 
-// don't have react-redux
-this.dispatch = store.dispatch()
-
-this.dispatch({
-  type: 'userModel/fetchUserInfo',
-})
-  .then((result) => {
-    console.log('success', result)
-  })
-  .catch((error) => {
-    console.log('catch', error)
-  })
-```
-
-## explain
-
-### dispatch type
-
-On top of it, we can see `type: 'userModel/fetchUserInfo'`
-
-- the `userModel` is `model namespace`
-- the `fetchUserInfo` is `action name` or `reducer name`
-
-### model structure
-
-- **namespace**，The namespace of the module
-
-  > namespace should be unique
-
-- **state**，current state value
-
-- **action**， It is the only source of store data.
-
-  > Action is the payload that transfers data from the application to the store.
-
-- **reducer**，It processes the update of the state according to the action.
-  > If there is no update or an unknown action is encountered, it returns the old state; otherwise, it returns a new state object.
-
-## support hooks
-
-yep，`rc-redux-model` also supports hooks，We provide API properties，Now, let's see how to use it
-
-```js
-// models/userModel.js
-import { createReduxModelHooks } from 'rc-redux-model'
-
-const userModel = {
-  namespace: 'userModel',
-  state: {
-    userInfo: {},
-    loading: false,
-  },
-  action: {},
-  reducers: {},
-}
-
-const [
-  useCreateFunctionModel,
-  useMethodToChangeModel,
-  useSelectorModel,
-] = createReduxModelHooks(userModel)
-
-export { useCreateFunctionModel, useMethodToChangeModel, useSelectorModel }
-export default userModel
-```
-
-We can use it on the page
-
-```js
-import {
-  useCreateFunctionModel,
-  useMethodToChangeModel,
-  useSelectorModel,
-} from './models/userModel'
-
-function UserComponent() {
-  const [userInfo, changeUserInfo] = useCreateFunctionModel() // return userInfo state and change userInfo function
-
-  // get userModel(namespace) state value
-  const userInfo = useSelectorModel('userModel/userInfo') // userInfo state value
-  const userLoading = useSelectorModel('userModel/loading') // loading state value
-
-  // create a method to modify userModel(namespace) state value
-  const changeUserInfo = useMethodToChangeModel('userModel/userInfo') // change userInfo state value
-  const changeUserLoading = useMethodToChangeModel('userModel/loading') // change loading state value
-}
-```
+| parameter                 | description                                                 | type    | defaultValue |
+| ------------------------- | ----------------------------------------------------------- | ------- | ------------ |
+| namespace                 | the model\'s namespace, Must, and only                      | string  | -            |
+| state                     | the model\'s state，Must, and only                          | object  | {}           |
+| action                    | action，not necessary                                       | object  | -            |
+| reducers                  | reducer，not necessary                                      | object  | -            |
+| autoRegisterDefaultAction | inject an action by default, the field description is above | boolean | true         |
