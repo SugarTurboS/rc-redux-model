@@ -25,10 +25,12 @@ const autoAction = (model: IModelProps) => {
       _wrapAutoReducers[`${actionType}`] = registerReducers()
     }
   })
-
   // 允许重名情况下覆盖，以用户定义的为主
   _wrapAutoAction = { ..._wrapAutoAction, ...action }
   _wrapAutoReducers = { ..._wrapAutoReducers, ...reducers }
+
+  // 为了防止太多个state对应action，所以提供一个默认的action，根据用户传递的key，策略模式分配到对应的action
+  _wrapAutoAction['setStoreLib'] = generateDefaultAction(namespace)
   return { ...model, action: _wrapAutoAction, reducers: _wrapAutoReducers }
 }
 
@@ -50,7 +52,6 @@ const generateActionType = (namespace: string, key: string): string => {
  */
 const registerAction = (actionType: string): Function => {
   return ({ currentAction, commit }: any) => {
-    console.log(currentAction)
     commit({
       type: actionType,
       payload: currentAction.payload,
@@ -69,6 +70,28 @@ const registerReducers = () => {
       ...state,
       ...payload,
     }
+  }
+}
+
+/**
+ * @desc 注册生成默认的action
+ * @summary 使用方式
+ * this.props.dispatch({
+ *   type: '[model.namespace]/setStoreLib',
+ *   payload: {
+ *     key: [model.state.key]
+ *     value: [your values]
+ *   }
+ * })
+ */
+const generateDefaultAction = (namespace: string) => {
+  return ({ currentAction, dispatch }: any) => {
+    // 根据key，触发对应的action
+    const keyProps = currentAction.payload && currentAction.payload.key
+    dispatch({
+      type: `${namespace}/change${keyProps}`,
+      payload: currentAction.payload.values,
+    })
   }
 }
 
