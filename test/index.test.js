@@ -34,12 +34,12 @@ describe('rc-redux-model init success', () => {
     })
   })
 
-  it('reducer must has [userModel, reportModel] key', () => {
+  it('reducer must has [userModel, appModel] key', () => {
     expect(reduxModels.reducers).toHaveProperty('userModel')
-    expect(reduxModels.reducers).toHaveProperty('reportModel')
+    expect(reduxModels.reducers).toHaveProperty('appModel')
   })
 
-  it('reducer [userModel, reportModel] must functions', () => {
+  it('reducer [userModel, appModel] must functions', () => {
     Object.keys(reduxModels.reducers).forEach((key) => {
       expect(Object.prototype.toString.call(reduxModels.reducers[key])).toEqual(
         '[object Function]'
@@ -66,24 +66,41 @@ describe('rc-redux-model init success', () => {
     })
 
     describe('handle action', () => {
-      it('can get state in action', (next) => {
-        const state = actionHandler({
-          type: 'userModel/getUserName',
-        })
-        expect(state.userInfo.name).toEqual('PDK')
-        next()
-      })
-
-      it('can call action and get right result', (next) => {
+      // 执行自动注册的Action，直接修改reducers的值
+      it('can handler auto register action', (next) => {
         actionHandler({
-          type: 'userModel/fetchUserInfo',
-          payload: { uid: 'PDK' },
-        }).then((res) => {
-          expect(res.data.name).toEqual('彭道宽')
-          expect(res.data.job).toEqual('CVTE FE')
+          type: 'appModel/changeappData',
+          payload: {
+            name: 'ABCD',
+          },
         })
         next()
       })
+      // it('get trigger auto register action reducers value', (next) => {
+      //   const appName = actionHandler({
+      //     type: 'userModel/getAppName',
+      //   })
+      //   console.log('appName: ', appName)
+      //   expect(appName).toEqual('ABCD')
+      //   next()
+      // })
+      // it('can get state in action', (next) => {
+      //   const userName = actionHandler({
+      //     type: 'userModel/getUserName',
+      //   })
+      //   expect(userName).toEqual('PDK')
+      //   next()
+      // })
+      // it('can call action and get right result', (next) => {
+      //   actionHandler({
+      //     type: 'userModel/fetchUserInfo',
+      //     payload: { uid: 'PDK' },
+      //   }).then((res) => {
+      //     expect(res.data.name).toEqual('彭道宽')
+      //     expect(res.data.job).toEqual('CVTE FE')
+      //   })
+      //   next()
+      // })
     })
   })
 })

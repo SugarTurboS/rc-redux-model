@@ -1,16 +1,16 @@
 import invariant from 'invariant'
-import { IModelProps, IParentModelProps } from './interface'
+import { IModelProps } from './interface'
 
 // 获取当前这个 actionModel 对应的 model
 const getCurrentModel = (
   actionModelName: string,
-  models: IParentModelProps
+  models: Array<IModelProps>
 ) => {
-  if (!models) return null
-  const modelKeys = Object.keys(models)
-  if (modelKeys.includes(actionModelName)) {
-    return models[actionModelName]
-  }
+  if (models.length === 0) return null
+  const findModel = models.filter(
+    (model: IModelProps) => model.namespace === actionModelName
+  )
+  if (findModel.length > 0) return findModel[0]
   return null
 }
 
@@ -43,7 +43,7 @@ const callAPI = (dispatch: any) => async (service: any, params: any) => {
   return Promise.resolve(result)
 }
 
-const registerMiddleWare = (models: IParentModelProps) => {
+const registerMiddleWare = (models: any) => {
   // middleware 中间件的写法，想了解可参考 : https://cn.redux.js.org/docs/advanced/Middleware.html
   return ({ dispatch, getState }) => (next: any) => (action: any) => {
     // 阅读了 redux-thunk 方式，并不适用我们这里
@@ -64,7 +64,7 @@ const registerMiddleWare = (models: IParentModelProps) => {
         : null
       // redux-thunk 中是对其 action 进行类型判断，认为 function 类型的 action 就是异步 action
       // 而我们在 model.js 文件中对 action 的写法，都是 function 类型，等价于，我们的 action 都是异步的
-      if (currentModelAction) {
+      if (currentModelAction && typeof currentModelAction === 'function') {
         const commitActionToReducer = actionToReducer(
           currentModel,
           actionModelName,

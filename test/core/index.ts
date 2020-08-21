@@ -1,6 +1,6 @@
 const invariant = require('invariant')
 const middleware = require('./middleware')
-
+const autoRegisterAction = require('./autoAction')
 /**
  * @desc RcReduxModel
  * @property {Object} models - 所有的 models
@@ -20,14 +20,17 @@ class RcReduxModel {
   }
 
   public start(models: Array<any>) {
-    models.forEach((model: any) => {
+    let _newAutoRegisterModels = models.map((model: any) => {
+      return autoRegisterAction(model)
+    })
+    _newAutoRegisterModels.forEach((model: any) => {
       // 1. 对每一个 model 都进行检查
       this.registerModel(model, models)
       // 2. 生成 reducers 纯函数
       this.reducers[model.namespace] = this.registerReducers(model)
     })
-    // 3. 生成 thunk 中间件
-    this.thunk = middleware(this.models)
+    // 4. 生成 thunk 中间件
+    this.thunk = middleware(_newAutoRegisterModels)
   }
 
   public registerModel(model: any, models: Array<any>) {
@@ -54,26 +57,26 @@ class RcReduxModel {
 
   public registerReducers(model: any) {
     const { namespace, state, reducers } = model
-    // 2.1 检查 reducers
+    // 3检查 reducers
     invariant(reducers, `model's reducers must be defined, but got undefined`)
 
-    // 2.2 得到所有 reducers 中的 action
+    // 3.1 得到所有 reducers 中的 action
     const reducersActionTypes = Object.keys(reducers)
 
-    // 2.2 reducers 是一个纯函数，function(state, action) {}
+    // 3.2 reducers 是一个纯函数，function(state, action) {}
     return (storeState: any, storeAction: any) => {
       const newState = storeState || state
-      // 2.3 对 action 进行处理，规定 action.type 都是 namespace/actionName 的格式
+      // 3.3 对 action 进行处理，规定 action.type 都是 namespace/actionName 的格式
       const reducersActionKeys = storeAction.type.split('/')
 
       const reducersActionModelName = reducersActionKeys[0]
       const reducersActionSelfName = reducersActionKeys[1]
 
-      // 2.3.1 如果不是当前的 model
+      // 3.3.1 如果不是当前的 model
       if (reducersActionModelName !== namespace) return newState
-      // 2.3.2 如果在 reducers 中存在这个 action
+      // 3.3.2 如果在 reducers 中存在这个 action
       if (reducersActionTypes.includes(reducersActionSelfName)) {
-        return reducers[reducersActionSelfName](newState, storeAction.type)
+        return reducers[reducersActionSelfName](newState, storeAction.payload)
       }
       return newState
     }
