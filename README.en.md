@@ -1,43 +1,51 @@
-# rc-redux-model
+# rc-redux-model 👋
 
 [简体中文](./README.md) | English
 
-![](https://img.shields.io/badge/author-彭道宽-red.svg)
+![](https://img.shields.io/badge/author-彭道宽-important.svg)
+![](https://img.shields.io/badge/team-SugarTurboS-critical.svg)
 ![](https://img.shields.io/badge/category-Redux-blue.svg)
 ![](https://img.shields.io/badge/category-React-yellowgreen.svg)
 ![](https://img.shields.io/badge/rc--redux--modal-v1.0.3-green.svg)
 ![](https://img.shields.io/badge/redux-^4.0.1-inactive.svg)
 ![](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-## 特性
+> Refer to dva's data flow solution and redux-thunk, internally implement middleware; provide default behavior action, call this action can directly modify any value in state, development is more convenient and concise, support Immutable ~
+
+## ✨ feature
 
 - Lightweight and concise, writing data management is as comfortable as writing `dva`
 - Abandon `redux-saga`, the asynchronous request can be processed by the user, or the provided method can be called to send, the return is a Promise
 - Refer to `redux-thunk`, implement your own middleware internally to handle asynchronous actions
 - Provide the default action Action, call this Action, you can directly modify any value in the state
+- Support `Immutable`, just config it to make your data immutable
 
-## install
+## ⛏ install
 
 ```bash
 npm install --save rc-redux-model
 ```
 
-## how did it come from ?
+## ⏳ how did it come from ?
 
 - [why rc-redux-model and what's rc-redux-model](./RcReduxModel.md)
 - [rc-redux-model design ideas and practices](./Design.md)
 
-## usage
+## 🚀 usage
 
 Before using, please read this description again, and then read the `complete example` to get started quickly . [👉 If you want to know how it came, you can check here](./RcReduxModel.md)
 
 ### how to send an action
 
+**an action composed of type、payload，The naming rule for type is : model.namespace / actionName**
+
 ```js
-this.props.dispatch({
-  type: 'model.namespace/actionName',
-  payload: null,
-})
+// demo for  namespace = appModel ，actionName = fetchUserList 
+const action = {
+  type: 'appModel/fetchUserList',
+}
+// send action
+this.props.dispatch(action)
 ```
 
 As shown above, **an action is composed of type and payload. The naming rule of type is: model.namespace/actionName, such as: [userModel/fetchUserInfo ]**
