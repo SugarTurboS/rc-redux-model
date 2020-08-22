@@ -1,12 +1,12 @@
 {
   "name": "rc-redux-model",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "react状态管理，借鉴dva思想，像写dva一样处理数据流方案，默认提供一个action，供你直接修改reducer，释放你的毫无意义的重复工作",
   "main": "/lib/index.js",
   "scripts": {
     "jest-cli": "jest test",
     "demo-cli": "cd demo && ts-node app.ts",
-    "build-ts": "./node_modules/.bin/babel core --out-dir lib --extensions '.ts'"
+    "build-cli": "./node_modules/.bin/babel core --out-dir lib --extensions '.ts'"
   },
   "repository": {
     "type": "git",
@@ -22,9 +22,6 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/PDKSophia/rc-redux-model/issues"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   },
   "homepage": "https://github.com/PDKSophia/rc-redux-model#readme",
   "devDependencies": {

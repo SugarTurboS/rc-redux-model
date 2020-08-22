@@ -31,6 +31,10 @@ npm install --save rc-redux-model
 - [why rc-redux-model and what's rc-redux-model](https://github.com/PDKSophia/rc-redux-model/issues/1)
 - [rc-redux-model design ideas and practices](https://github.com/PDKSophia/rc-redux-model/issues/2)
 
+## 在项目中使用
+
+[👉 点击这里，这是在项目中的真实代码](https://github.com/PDKSophia/rc-redux-model/issues/3)
+
 ## 🚀 使用
 
 在使用之前，请了解几个知识点，然后再看`完整例子`即可快速上手使用!!! [👉 如果你想了解它是怎么来的，点这里](https://github.com/PDKSophia/rc-redux-model/issues/1)
@@ -102,7 +106,7 @@ this.props.dispatch({
   type: '[model.namespace]/setStoreLib',
   payload: {
     key: [model.state.key]  // 你要修改的state key
-    value: [your values] // 你要修改的值
+    values: [your values] // 你要修改的值
   }
 })
 ```
@@ -137,6 +141,7 @@ const mapStateToProps = (state) => {
   return {
     appModel: state.appModel,
     userModel: state.userModel,
+    reportModel: state.reportModel.taskInfo,
   }
 }
 
@@ -185,6 +190,8 @@ export default {
 
 ## 🍓 完整例子
 
+[👉 点击这里，这是在项目中的真实代码](https://github.com/PDKSophia/rc-redux-model/issues/3)
+
 1. 新建一个 model 文件夹，该文件夹下新增一个 userModel.js
 
 ```js
@@ -193,6 +200,7 @@ import adapter from '@common/adapter'
 
 const userModel = {
   namespace: 'userModel',
+  openSeamlessImmutable: false,
   state: {
     userInfo: {
       name: 'PDK',
@@ -355,7 +363,7 @@ class MyComponents extends React.PureComponent {
    type: '[model.namespace]/setStoreLib',
    payload: {
      key: [model.state.key]
-     value: [your values]
+     values: [your values]
    }
  })
 ```
