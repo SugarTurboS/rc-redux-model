@@ -23,6 +23,9 @@
   "bugs": {
     "url": "https://github.com/PDKSophia/rc-redux-model/issues"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "homepage": "https://github.com/PDKSophia/rc-redux-model#readme",
   "devDependencies": {
     "@babel/cli": "^7.10.5",
@@ -38,6 +41,7 @@
   "dependencies": {
     "core-js": "2",
     "invariant": "^2.2.4",
-    "redux": "^4.0.5"
+    "redux": "^4.0.5",
+    "seamless-immutable": "^7.1.4"
   }
 }

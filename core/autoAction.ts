@@ -1,4 +1,5 @@
 import { IModelProps } from './interface'
+import Immutable from 'seamless-immutable'
 
 /**
  * @desc 对每一个 model 自动注册 action 与 reducers
@@ -9,7 +10,7 @@ import { IModelProps } from './interface'
 const autoAction = (model: IModelProps) => {
   let _wrapAutoAction = {}
   let _wrapAutoReducers = {}
-  const { namespace, state = {}, action = {}, reducers = {} } = model
+  const { namespace, state = {},  action = {}, reducers = {}, openSeamlessImmutable = false, } = model
   const stateKeys = Object.keys(state)
 
   // 如果是空state，那么直接返回 model
@@ -22,7 +23,7 @@ const autoAction = (model: IModelProps) => {
       _wrapAutoAction[`change${key}`] = registerAction(actionType)
     }
     if (!_wrapAutoReducers[`${actionType}`]) {
-      _wrapAutoReducers[`${actionType}`] = registerReducers()
+      _wrapAutoReducers[`${actionType}`] = registerReducers(key, openSeamlessImmutable)
     }
   })
   // 允许重名情况下覆盖，以用户定义的为主
@@ -61,11 +62,14 @@ const registerAction = (actionType: string): Function => {
 
 /**
  * @desc 自动注册 reducers
- * @param {string} namespace - 命名空间
  * @param {string} key - 当前的state key值
+ * @param {boolean} openSeamlessImmutable - 是否开启Immutable
  */
-const registerReducers = () => {
+const registerReducers = (key: string, openSeamlessImmutable: boolean) => {
   return (state: any, payload: any) => {
+    if (openSeamlessImmutable) {
+      return Immutable.merge(state, key, payload)
+    }
     return {
       ...state,
       ...payload,

@@ -10,6 +10,7 @@ export interface IModelProps {
   reducers?: {
     [key: string]: any
   }
+  openSeamlessImmutable?: boolean
 }
 
 export interface IParentModelProps {
