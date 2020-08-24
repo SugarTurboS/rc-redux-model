@@ -1,6 +1,6 @@
 {
   "name": "rc-redux-model",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "react状态管理，借鉴dva思想，像写dva一样处理数据流方案，默认提供一个action，供你直接修改reducer，释放你的毫无意义的重复工作",
   "main": "/lib/index.js",
   "scripts": {

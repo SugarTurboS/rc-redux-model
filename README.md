@@ -186,6 +186,33 @@ export default {
 }
 ```
 
+### 类型正确性 ？
+
+不可避免，有时在 `model.state` 中定义好某个值的类型，但在改的时候却将其改为另一个类型，例如 :
+
+```js
+export default {
+  namespace: 'userModel',
+  state: {
+    name: '', // 这里定义 name 为 string 类型
+  },
+}
+```
+
+但在修改此 state value 时，传递的确是一个非 string 类型的值
+
+```js
+this.props.dispatch({
+  type: 'userModel/setStoreLib',
+  payload: {
+    key: 'name',
+    values: {}, // 这里name 变成了object
+  },
+})
+```
+
+这其实是不合理的，在 rc-redux-model 中，会判断 `state[key]` 中的类型与 payload 传入的类型进行比较，如果类型不相等，报错提示
+
 ---
 
 ## 🍓 完整例子
@@ -331,9 +358,7 @@ class MyComponents extends React.PureComponent {
       payload: {
         key: 'userInfo',
         values: {
-          userInfo: {
-            name: 'setStoreLib_name',
-          },
+          name: 'setStoreLib_name',
         },
       },
     })

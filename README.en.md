@@ -40,7 +40,7 @@ Before using, please read this description again, and then read the `complete ex
 **an action composed of type、payload，The naming rule for type is : model.namespace / actionName**
 
 ```js
-// demo for  namespace = appModel ，actionName = fetchUserList 
+// demo for  namespace = appModel ，actionName = fetchUserList
 const action = {
   type: 'appModel/fetchUserList',
 }
@@ -154,9 +154,8 @@ If your project never install or used `react-redux`, you also can import the `st
 
 But in this way, you must use `store.getState()` to get a newest value after you change it.
 
-
 ```js
-import store from '@your_folder/store' 
+import store from '@your_folder/store'
 
 class appComponent extends React.Component {
   constructor() {
@@ -169,7 +168,7 @@ class appComponent extends React.Component {
 
 In a functional programming language, data is immutable. Once all data is generated, the value cannot be changed. If it is to be changed, only a new data can be generated. [👉 You can read this article](https://juejin.im/post/6844904183426973703).
 
-`rc-redux-model` is integrated with `seamless-immutable`, provide a config named `openSeamlessImmutable` to let you decide whether to use it. If your state is 
+`rc-redux-model` is integrated with `seamless-immutable`, provide a config named `openSeamlessImmutable` to let you decide whether to use it. If your state is
 Immutable, but you never config `openSeamlessImmutable`, it will throw an error.
 
 ```js
@@ -183,6 +182,33 @@ export default {
   openSeamlessImmutable: true,
 }
 ```
+
+### Type correctness?
+
+Inevitably, sometimes the type of a value is defined in `model.state`, but when it is changed, it is changed to another type, for example:
+
+```js
+export default {
+  namespace: 'userModel',
+  state: {
+    name: '', // Here defines name as string type
+  },
+}
+```
+
+But when modifying this state value, the value passed is indeed a `non-string` type value
+
+```js
+this.props.dispatch({
+  type: 'userModel/setStoreLib',
+  payload: {
+    key: 'name',
+    values: {}, // Here name becomes object
+  },
+})
+```
+
+This is actually unreasonable. In `rc-redux-model`, the type in `state[key]` will be judged to compare with the type passed in by payload. If the types are not equal, an error message will be displayed.
 
 ---
 
@@ -329,9 +355,7 @@ class MyComponents extends React.PureComponent {
       payload: {
         key: 'userInfo',
         values: {
-          userInfo: {
-            name: 'setStoreLib_name',
-          },
+          name: 'setStoreLib_name',
         },
       },
     })
@@ -363,7 +387,6 @@ Each model receives 5 attributes, as follows
    }
  })
 ```
-
 
 ## Maintainers
 
