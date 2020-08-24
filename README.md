@@ -380,7 +380,7 @@ PRs accepted.
 
 ## License
 
-MIT © 2020 PDKSophia
+MIT © 2020 PDKSophia/SugarTurboS
 
 ---
 

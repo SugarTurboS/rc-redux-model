@@ -33,7 +33,7 @@ npm install --save rc-redux-model
 
 ## 🚀 usage
 
-Before using, please read this description again, and then read the `complete example` to get started quickly . [👉 If you want to know how it came, you can check here](./RcReduxModel.md)
+Before using, please read this description again, and then read the `complete example` to get started quickly . [👉 If you want to know how it came, you can check here](https://github.com/PDKSophia/rc-redux-model/issues/1)
 
 ### how to send an action
 
@@ -47,8 +47,6 @@ const action = {
 // send action
 this.props.dispatch(action)
 ```
-
-As shown above, **an action is composed of type and payload. The naming rule of type is: model.namespace/actionName, such as: [userModel/fetchUserInfo ]**
 
 Please note that every action here is a function, that is, the idea of processing `synchronous action` is the same as processing `asynchronous action`.
 
@@ -66,7 +64,7 @@ In `model.action`, each action is a function, and the parameters it receives are
 
 ### model description
 
-Each `model` must contain `namespace`, `state`, and must contain
+**Each `model` must contain `namespace`, `state`, and must contain**
 
 The middleware will automatically register an Action for you. **Every state field will automatically register an Action to modify the state**, such as:
 
@@ -109,11 +107,88 @@ this.props.dispatch({
 })
 ```
 
-**<span style="color: #FA5523">All actions that modify state are sent through setStoreLib. Don’t worry about not being found in redux devtools. This action will just forward the corresponding action based on your key.</span>**
+🌟 All actions that modify state are sent through setStoreLib. Don’t worry about not being found in redux devtools. This action will just forward the corresponding action based on your key.
+
+---
+
+### how to get state value in component？
+
+Please attention, `rc-redux-model` is a middleware, in most of time, it is compatible in your project, so you can get state value in old way your project ever used.
+
+```js
+class appComponent extends React.Component {
+  componentDidMount() {
+    // send action，change loading to true
+    this.props.dispatch({
+      type: 'appModel/fetchLoadingStatus',
+      payload: {
+        loadingStatus: true,
+      },
+    })
+  }
+
+  render() {
+    const { loadingStatus } = this.props.appModel
+    console.log(loadingStatus) // true
+  }
+}
+
+const mapStateToProps = (state) => {
+  return {
+    appModel: state.appModel,
+    userModel: state.userModel,
+    reportModel: state.reportModel.taskInfo,
+  }
+}
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    dispatch,
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(appComponent)
+```
+
+If your project never install or used `react-redux`, you also can import the `store` in each component and get the state value through `store.getState()`.
+
+But in this way, you must use `store.getState()` to get a newest value after you change it.
+
+
+```js
+import store from '@your_folder/store' 
+
+class appComponent extends React.Component {
+  constructor() {
+    this.appState = store.getState()['appModel']
+  }
+}
+```
+
+### Immutable ?
+
+In a functional programming language, data is immutable. Once all data is generated, the value cannot be changed. If it is to be changed, only a new data can be generated. [👉 You can read this article](https://juejin.im/post/6844904183426973703).
+
+`rc-redux-model` is integrated with `seamless-immutable`, provide a config named `openSeamlessImmutable` to let you decide whether to use it. If your state is 
+Immutable, but you never config `openSeamlessImmutable`, it will throw an error.
+
+```js
+//use seamless-immutable
+
+import Immutable from 'seamless-immutable'
+
+export default {
+  namespace: 'appModel',
+  state: Immutable({}),
+  openSeamlessImmutable: true,
+}
+```
 
 ---
 
 ## complete example
+
+[👉 Live code](https://github.com/PDKSophia/rc-redux-model/issues/3)
 
 1. Create a new model folder, add a new `userModel.js` under the folder
 
@@ -288,3 +363,22 @@ Each model receives 5 attributes, as follows
    }
  })
 ```
+
+
+## Maintainers
+
+[@PDKSophia](https://github.com/PDKSophia)
+
+[@SugarTurboS](https://github.com/SugarTurboS)
+
+## Contributing
+
+PRs accepted.
+
+## License
+
+MIT © 2020 PDKSophia/SugarTurboS
+
+---
+
+This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)
