@@ -1,5 +1,6 @@
-import { IModelProps } from './interface'
+import invariant from 'invariant'
 import Immutable from 'seamless-immutable'
+import { IModelProps } from './interface'
 
 /**
  * @desc 对每一个 model 自动注册 action 与 reducers
@@ -67,12 +68,31 @@ const registerAction = (actionType: string): Function => {
  */
 const registerReducers = (key: string, openSeamlessImmutable: boolean) => {
   return (state: any, payload: any) => {
-    if (openSeamlessImmutable) {
-      return Immutable.merge(state, key, payload)
+    // 判断类型是否一致，如 model.state 里边对某个state值类型是string，但是想修改为object，这也是不合理的
+    const prevStateKeyType = Object.prototype.toString.call(state[key])
+    const nextStateKeyType = Object.prototype.toString.call(payload)
+    invariant(
+      prevStateKeyType === nextStateKeyType,
+      `you define typeof [${key}] is ${prevStateKeyType}, but got ${nextStateKeyType}`
+    )
+
+    if (
+      nextStateKeyType === '[object Object]' ||
+      nextStateKeyType === '[object Array]'
+    ) {
+      if (openSeamlessImmutable) {
+        return Immutable.merge(state, {
+          [key]: payload,
+        })
+      }
+    } else {
+      if (openSeamlessImmutable) {
+        return Immutable.set(state, `${key}`, payload)
+      }
     }
     return {
       ...state,
-      ...payload,
+      [key]: payload,
     }
   }
 }
@@ -89,9 +109,18 @@ const registerReducers = (key: string, openSeamlessImmutable: boolean) => {
  * })
  */
 const generateDefaultAction = (namespace: string) => {
-  return ({ currentAction, dispatch }: any) => {
+  return ({ currentAction, getState, dispatch }: any) => {
+    const currentModelState = getState()[namespace]
+    const stateKeys = Object.keys(currentModelState)
     // 根据key，触发对应的action
     const keyProps = currentAction.payload && currentAction.payload.key
+
+    // 如果state值不存在，如 state {} 中只有a、b，然后通过commit想添加个c，这是不合理的
+    invariant(
+      stateKeys.includes(keyProps),
+      `you didn't define the [${keyProps}] in the model.state, please check for correctness`
+    )
+
     dispatch({
       type: `${namespace}/change${keyProps}`,
       payload: currentAction.payload.values,
