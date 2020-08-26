@@ -69,38 +69,40 @@ describe('rc-redux-model init success', () => {
       // 执行自动注册的Action，直接修改reducers的值
       it('can handler auto register action', (next) => {
         actionHandler({
-          type: 'appModel/changeappData',
+          type: 'appModel/setStore',
           payload: {
-            name: 'ABCD',
+            key: 'appData',
+            values: {
+              name: 'ABCD',
+            },
           },
         })
         next()
       })
-      // it('get trigger auto register action reducers value', (next) => {
-      //   const appName = actionHandler({
-      //     type: 'userModel/getAppName',
-      //   })
-      //   console.log('appName: ', appName)
-      //   expect(appName).toEqual('ABCD')
-      //   next()
-      // })
-      // it('can get state in action', (next) => {
-      //   const userName = actionHandler({
-      //     type: 'userModel/getUserName',
-      //   })
-      //   expect(userName).toEqual('PDK')
-      //   next()
-      // })
-      // it('can call action and get right result', (next) => {
-      //   actionHandler({
-      //     type: 'userModel/fetchUserInfo',
-      //     payload: { uid: 'PDK' },
-      //   }).then((res) => {
-      //     expect(res.data.name).toEqual('彭道宽')
-      //     expect(res.data.job).toEqual('CVTE FE')
-      //   })
-      //   next()
-      // })
+      it('get trigger auto register action reducers value', (next) => {
+        const appName = actionHandler({
+          type: 'appModel/getAppName',
+        })
+        expect(appName).toEqual('ABCD')
+        next()
+      })
+      it('can get state in action', (next) => {
+        const userName = actionHandler({
+          type: 'userModel/getUserName',
+        })
+        expect(userName).toEqual('PDK')
+        next()
+      })
+      it('can call action and get right result', (next) => {
+        actionHandler({
+          type: 'userModel/fetchUserInfo',
+          payload: { uid: 'PDK' },
+        }).then((res) => {
+          expect(res.data.name).toEqual('彭道宽')
+          expect(res.data.job).toEqual('CVTE FE')
+        })
+        next()
+      })
     })
   })
 })

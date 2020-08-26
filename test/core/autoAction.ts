@@ -4,45 +4,31 @@
  * @param {object} model
  * @returns {object} newModel
  */
+import invariantAction from 'invariant'
+import Immutable from 'seamless-immutable'
+
 const autoAction = (model: any) => {
-  let _newAction = {}
-  let _newReducers = {}
-  const { namespace, state = {}, action = {}, reducers = {} } = model
+  let _wrapAutoAction = {}
+  let _wrapAutoReducers = {}
+  const { namespace, state = {},  action = {}, reducers = {}, openSeamlessImmutable = false, } = model
   const stateKeys = Object.keys(state)
 
-  // 如果是空state，那么直接返回 model
   if (stateKeys.length === 0) return model
 
-  // 遍历 state，给每一个值都自动注册修改此state的action
   stateKeys.forEach((key: string) => {
     const actionType = generateActionType(namespace, key)
-    if (!_newAction[`change${key}`]) {
-      _newAction[`change${key}`] = registerAction(actionType)
+    if (!_wrapAutoAction[`set${key}`]) {
+      _wrapAutoAction[`set${key}`] = registerAction(actionType)
     }
-    if (!_newReducers[`${actionType}`]) {
-      _newReducers[`${actionType}`] = registerReducers()
+    if (!_wrapAutoReducers[`${actionType}`]) {
+      _wrapAutoReducers[`${actionType}`] = generateReducers(key, openSeamlessImmutable)
     }
   })
+  _wrapAutoAction = { ..._wrapAutoAction, ...action }
+  _wrapAutoReducers = { ..._wrapAutoReducers, ...reducers }
+  _wrapAutoAction['setStore'] = generateDefaultAction(namespace)
 
-  // 允许重名情况下覆盖，以用户定义的为主
-  _newAction = { ..._newAction, ...action }
-  _newReducers = { ..._newReducers, ...reducers }
-  return { ...model, action: _newAction, reducers: _newReducers }
-}
-
-/**
- * @desc 自动注册 reducers
- * @param {string} namespace - 命名空间
- * @param {string} key - 当前的state key值
- */
-const registerReducers = () => {
-  return (state: any, payload: any) => {
-    console.log('###', payload)
-    return {
-      ...state,
-      ...payload,
-    }
-  }
+  return { ...model, action: _wrapAutoAction, reducers: _wrapAutoReducers }
 }
 
 /**
@@ -53,7 +39,7 @@ const registerReducers = () => {
  * @returns {string} actionType
  */
 const generateActionType = (namespace: string, key: string): string => {
-  return `${namespace.toUpperCase()}_STORE_LIB_${key.toUpperCase()}`
+  return `SET_${namespace.toUpperCase()}_${key.toUpperCase()}`
 }
 
 /**
@@ -66,6 +52,70 @@ const registerAction = (actionType: string): Function => {
     commit({
       type: actionType,
       payload: currentAction.payload,
+    })
+  }
+}
+
+/**
+ * @desc 自动注册 reducers
+ * @param {string} key - 当前的state key值
+ * @param {boolean} openSeamlessImmutable - 是否开启Immutable
+ */
+const generateReducers = (key: string, openSeamlessImmutable: boolean) => {
+  return (state: any, payload: any) => {
+    const prevStateKeyType = Object.prototype.toString.call(state[key])
+    const nextStateKeyType = Object.prototype.toString.call(payload)
+    invariantAction(
+      prevStateKeyType === nextStateKeyType,
+      `you define typeof [${key}] is ${prevStateKeyType}, but got ${nextStateKeyType}`
+    )
+
+    if (
+      nextStateKeyType === '[object Object]' ||
+      nextStateKeyType === '[object Array]'
+    ) {
+      if (openSeamlessImmutable) {
+        return Immutable.merge(state, {
+          [key]: payload,
+        })
+      }
+    } else {
+      if (openSeamlessImmutable) {
+        return Immutable.set(state, `${key}`, payload)
+      }
+    }
+    return {
+      ...state,
+      [key]: payload,
+    }
+  }
+}
+
+/**
+ * @desc 注册生成默认的action
+ * @summary 使用方式
+ * this.props.dispatch({
+ *   type: '[model.namespace]/setStore',
+ *   payload: {
+ *     key: [model.state.key]
+ *     value: [your values]
+ *   }
+ * })
+ */
+const generateDefaultAction = (namespace: string) => {
+  return ({ currentAction, getState, dispatch }: any) => {
+    const currentModelState = getState()[namespace]
+    const stateKeys = Object.keys(currentModelState)
+    const keyProps = currentAction.payload && currentAction.payload.key
+
+    invariantAction(
+      stateKeys.includes(keyProps),
+      `you didn't define the [${keyProps}] in the model.state, please check for correctness`
+    )
+
+    dispatch({
+      type: `${namespace}/set${keyProps}`,
+      payload: currentAction.payload.values,
     })
   }
 }
