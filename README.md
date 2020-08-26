@@ -10,14 +10,14 @@
 ![](https://img.shields.io/badge/redux-^4.0.1-inactive.svg)
 ![](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-> 提供一种较为舒适的数据状态管理写法，让你简洁优雅的去开发；内部自动生成的 action ，方便简洁，释放你的 CV 键～
+> ✍️ 提供一种较为舒适的数据状态管理书写方式，让你简洁优雅的去开发；内部自动生成 action, 只需记住一个 action，可以修改任意的 state 值，方便简洁，释放你的 ⌨️ CV 键～
 
 ## ✨ 特性
 
 - 轻巧简洁，写数据管理就跟写 `dva` 一样舒服
 - 异步请求由用户自行处理，内部支持 call 方法，可调用提供的方法进行转发，该方法返回的是一个 Promise
 - 参考 `redux-thunk`，内部实现独立的中间件，所有的 action 都是异步 action
-- 提供默认行为 action，调用此 action ，可以直接修改 state 里的任意值，解决你重复性写 action 、reducers 的问题
+- 提供默认行为 action，调用此 action ，可以修改任意的 state 值，解决你重复性写 action 、reducers 问题
 - 内置 `seamless-immutable` ，只需开启配置，让你的数据不可变
 - 默认检测不规范的赋值与类型错误，让你的数据更加健壮
 
@@ -154,7 +154,7 @@ export default [userModel]
 // createStore.js
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import models from './models'
-import RcReduxModel from 'rc-redux-model/lib/index'
+import RcReduxModel from 'rc-redux-model'
 
 const reduxModel = new RcReduxModel(models)
 const _rootThunk = reduxModel.thunk
