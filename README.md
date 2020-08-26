@@ -10,15 +10,15 @@
 ![](https://img.shields.io/badge/redux-^4.0.1-inactive.svg)
 ![](https://img.shields.io/badge/license-MIT-yellow.svg)
 
-> 提供一种更加舒适的写法，让你简洁优雅的去写状态管理；借鉴 dva 的数据流方案，参考 redux-thunk，内部实现中间件；提供默认行为 action，调用此 action 可直接修改 state 里的任意值，开发更加方便简洁，支持 Immutable ～
+> 提供一种较为舒适的数据状态管理写法，让你简洁优雅的去开发；内部自动生成的 action ，方便简洁，释放你的 CV 键～
 
 ## ✨ 特性
 
 - 轻巧简洁，写数据管理就跟写 `dva` 一样舒服
-- 抛弃 `redux-saga` ，异步请求由用户自行处理，或者调用提供的方法进行转发，该方法返回的是一个 Promise
-- 参考 `redux-thunk`，内部实现独立的中间件，处理异步 Action
-- 提供默认行为 Action，调用此 Action ，可以直接修改 state 里的任意值
-- 支持 `Immutable` ，只需开启配置，让你的数据不可变
+- 异步请求由用户自行处理，内部支持 call 方法，可调用提供的方法进行转发，该方法返回的是一个 Promise
+- 参考 `redux-thunk`，内部实现独立的中间件，所有的 action 都是异步 action
+- 提供默认行为 action，调用此 action ，可以直接修改 state 里的任意值，解决你重复性写 action 、reducers 的问题
+- 内置 `seamless-immutable` ，只需开启配置，让你的数据不可变
 - 默认检测不规范的赋值与类型错误，让你的数据更加健壮
 
 ## ⏳ 前世今生
@@ -43,6 +43,37 @@ npm install --save rc-redux-model
 ## 🚀 使用
 
 如有疑问，看下边的相关说明~ 同时对于如何在项目中使用，[👉 可以点这里](https://github.com/PDKSophia/rc-redux-model/issues/3)
+
+### 无额外多写 action/reducers
+
+如果你的 model , 大部分下都是发起同步 action，从而修改 state 值，那么你的 model 只需要这么写即可
+
+```js
+export default {
+  namespace: 'appModel',
+  openSeamlessImmutable: false,
+  state: {
+    value1: '',
+    value2: []',
+    value3: {},
+    value4: false,
+  }
+}
+```
+
+在页面中，只需要调用默认的 [model.namespace/setStore] 就可以修改 state 里的值了，美滋滋，不需要你自己在 action、reducers 去写很多重复的代码
+
+```js
+this.props.dispatch({
+  type: 'appModel/setStore',
+  payload: {
+    key: 'value1',
+    values: 'appModel_state_value1',
+  },
+})
+```
+
+### 复杂且真实的例子
 
 1. 新建一个 model 文件夹，该文件夹下新增一个 userModel.js
 
