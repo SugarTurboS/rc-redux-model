@@ -21,18 +21,204 @@
 - 支持 `Immutable` ，只需开启配置，让你的数据不可变
 - 默认检测不规范的赋值与类型错误，让你的数据更加健壮
 
+## ⏳ 前世今生
+
+- [why rc-redux-model and what's rc-redux-model](https://github.com/PDKSophia/rc-redux-model/issues/1)
+- [rc-redux-model design ideas and practices](https://github.com/PDKSophia/rc-redux-model/issues/2)
+
+## 🧱 强调说明
+
+**rc-redux-model 出发点在于解决我繁琐重复的工作，store 文件分散，state 类型和赋值错误的问题，为此，对于跟我一样的用户，提供了一个写状态管理较为[舒服]的书写方式，大部分情况下兼容原先项目**~
+
+- 为了解决[store 文件分散]，参考借鉴了 dva 写状态管理的方式，一个 model 中写所有的 `action、state、reducers`
+- 为了解决[繁琐重复的工作]，提供默认的 action，用户不需要自己写修改 state 的 action，只需要调用默认提供的 `[model.namespace/setStore]` 即可，从而将一些重复的代码从 model 文件中剔除
+- 为了解决[state 类型和赋值错误]，在每次修改 state 值时候，都会进行检测，如果不通过则报错提示
+
 ## ⛏ 安装
 
 ```bash
 npm install --save rc-redux-model
 ```
 
-## ⏳ 前世今生
-
-- [why rc-redux-model and what's rc-redux-model](https://github.com/PDKSophia/rc-redux-model/issues/1)
-- [rc-redux-model design ideas and practices](https://github.com/PDKSophia/rc-redux-model/issues/2)
-
 ## 🚀 使用
+
+如有疑问，看下边的相关说明~ 同时对于如何在项目中使用，[👉 可以点这里](https://github.com/PDKSophia/rc-redux-model/issues/3)
+
+1. 新建一个 model 文件夹，该文件夹下新增一个 userModel.js
+
+```js
+// model/userModel.js
+import adapter from '@common/adapter'
+
+const userModel = {
+  namespace: 'userModel',
+  openSeamlessImmutable: false,
+  state: {
+    userInfo: {
+      name: 'PDK',
+    },
+  },
+  action: {
+    // demo1: 直接获取 state 的值（不推荐使用，建议使用 react-redux 中的 connect 方式获取）
+    getUserName: ({ getState }) => {
+      const state = getState()['userModel']
+      return state.userInfo.name
+    },
+    // demo2: 发起一个 action，修改 reducers (修改reducers state 值建议使用默认的 setStore !!!)
+    storeInfo: ({ currentAction, commit }) => {
+      commit({
+        type: 'STORE_INFO',
+        payload: currentAction.payload,
+      })
+    },
+    // demo3: 发起一个异步请求，异步请求结束之后，再修改 reducers (修改reducers state 值建议使用默认的 setStore !!!)
+    fetchUserInfo: async ({ commit, call }) => {
+      let res = await call(adapter.callAPI, params)
+      if (res.code === 0) {
+        commit({
+          type: 'CHANGE_USER_INFO',
+          payload: res.data,
+        })
+      }
+      return res
+    },
+    // demo4: 在这个action中，再发起另一个action(此action是其他model的)，比如将请求loading该为true
+    fetchList: async ({ dispatch }) => {
+      dispatch({
+        type: 'globalModel/changeLoadingStatus', // 发一个 globalModel 的 action
+      })
+    },
+  },
+  reducers: {
+    ['STORE_INFO'](state, payload) {
+      return {
+        ...state,
+        userInfo: { ...payload },
+      }
+    },
+    ['CHANGE_USER_INFO'](state, payload) {
+      return {
+        ...state,
+        userInfo: { ...payload },
+      }
+    },
+  },
+}
+
+export default userModel
+```
+
+2. 聚集所有的 models，请注意，这里导出的是一个 **数组**
+
+```js
+// model/index.js
+import userModel from './userModel'
+
+export default [userModel]
+```
+
+3. 处理 models, 注册中间件
+
+```js
+// createStore.js
+import { createStore, applyMiddleware, combineReducers } from 'redux'
+import models from './models'
+import RcReduxModel from 'rc-redux-model/lib/index'
+
+const reduxModel = new RcReduxModel(models)
+const _rootThunk = reduxModel.thunk
+const _rootReducers = reduxModel.reducers
+
+const reducerList = combineReducers(_rootReducers)
+return createStore(reducerList, applyMiddleware(_rootThunk))
+```
+
+4. 在页面中使用
+
+请注意，这里的 action 都是异步 action，内部中间件的实现方式参考 `redux-thunk`，也就是说，我们 `dispatch` 一个 `action` 都是对应的一个方法，看代码 :
+
+```js
+class MyComponents extends React.PureComponent {
+  componentDidMount() {
+    // demo1 : 通过发起一个 action 获取 state.userModel.userInfo.name
+    const userName = this.props.dispatch({
+      type: 'userModel/getUserName',
+    })
+    console.log(userName) // PDK
+
+    // demo2 : 发起一个同步action，修改 reducers中的 state.userModel.userInfo.name
+    this.props.dispatch({
+      type: 'userModel/storeInfo',
+      payload: {
+        name: 'demo3',
+      },
+    })
+
+    // demo3: 发起一个直接修改state的action （不推荐此方法！！！）
+    this.props.dispatch({
+      type: 'userModel/changeuserInfo',
+      payload: {
+        userInfo: {
+          name: '哈哈哈哈',
+        },
+      },
+    })
+
+    // demo4: 发起一个异步 action，当请求完成之后再修改 reducers 的值
+    // 具体的请求，在 model.action 中自己写，支持 Promise，之前需要 callback 回调请求后的数据，现在直接 then 获取
+    this.props
+      .dispatch({
+        type: 'userModel/fetchUserInfo',
+      })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+
+    // demo5: 发起一个默认提供的 action，根据用户的 key 转发，直接修改 state 的值 （推荐此方法）
+    this.props.dispatch({
+      type: 'userModel/setStore',
+      payload: {
+        key: 'userInfo',
+        values: {
+          name: 'setStore_name',
+        },
+      },
+    })
+  }
+}
+```
+
+## hooks ?
+
+hooks 的出现，让我们看到了处理复杂且重复逻辑的曙光，那么问题来了，在 hooks 中能不能用 `rc-redux-model` ，我想说 : “想啥呢，一个是 react 的特性，一个是 redux 的中间件， 冲突吗？”
+
+```js
+// Usage with React Redux: Typing the useSelector hook & Typing the useDispatch hook
+// https://redux.js.org/recipes/usage-with-typescript#usage-with-react-redux
+import { useDispatch } from 'redux'
+
+export function useFetchUserInfo() {
+  const dispatch = useDispatch()
+  return async (userId: string) => {
+    // 这里我选择自己处理异步，异步请求完后，再把数据传到 reducer 中
+    const res = await callAPI(userId)
+    if (res.code === 200) {
+      dispatch({
+        type: 'userModel/setStore',
+        payload: {
+          key: 'userInfo',
+          values: res.data,
+        },
+      })
+    }
+  }
+}
+```
+
+## 🔥 相关说明
 
 在使用之前，请了解几个知识点，然后再看`完整例子`即可快速上手使用 !!! [👉 如果你想了解它是怎么来的，点这里](https://github.com/PDKSophia/rc-redux-model/issues/1)
 
@@ -229,159 +415,6 @@ this.props.dispatch({
 ```
 
 极度不合理，因为你在 state 中并没有声明此属性， rc-redux-model 会默认帮你做检测
-
----
-
-## 🍓 完整例子
-
-[👉 点击这里，这是在项目中的真实代码](https://github.com/PDKSophia/rc-redux-model/issues/3)
-
-1. 新建一个 model 文件夹，该文件夹下新增一个 userModel.js
-
-```js
-// model/userModel.js
-import adapter from '@common/adapter'
-
-const userModel = {
-  namespace: 'userModel',
-  openSeamlessImmutable: false,
-  state: {
-    userInfo: {
-      name: 'PDK',
-    },
-  },
-  action: {
-    // demo1: 直接获取 state 的值（不推荐使用，建议使用 react-redux 中的 connect 方式获取）
-    getUserName: ({ getState }) => {
-      const state = getState()['userModel']
-      return state.userInfo.name
-    },
-    // demo2: 发起一个 action，修改 reducers (修改reducers state 值建议使用默认的 setStore !!!)
-    storeInfo: ({ currentAction, commit }) => {
-      commit({
-        type: 'STORE_INFO',
-        payload: currentAction.payload,
-      })
-    },
-    // demo3: 发起一个异步请求，异步请求结束之后，再修改 reducers (修改reducers state 值建议使用默认的 setStore !!!)
-    fetchUserInfo: async ({ commit, call }) => {
-      let res = await call(adapter.callAPI, params)
-      if (res.code === 0) {
-        commit({
-          type: 'CHANGE_USER_INFO',
-          payload: res.data,
-        })
-      }
-      return res
-    },
-    // demo4: 在这个action中，再发起另一个action(此action是其他model的)，比如将请求loading该为true
-    fetchList: async ({ dispatch }) => {
-      dispatch({
-        type: 'globalModel/changeLoadingStatus', // 发一个 globalModel 的 action
-      })
-    },
-  },
-  reducers: {
-    ['STORE_INFO'](state, payload) {
-      return {
-        ...state,
-        userInfo: { ...payload },
-      }
-    },
-    ['CHANGE_USER_INFO'](state, payload) {
-      return {
-        ...state,
-        userInfo: { ...payload },
-      }
-    },
-  },
-}
-
-export default userModel
-```
-
-2. 聚集所有的 models，请注意，这里导出的是一个 **数组**
-
-```js
-// model/index.js
-import userModel from './userModel'
-
-export default [userModel]
-```
-
-3. 处理 models, 注册中间件
-
-```js
-// createStore.js
-import { createStore, applyMiddleware, combineReducers } from 'redux'
-import models from './models'
-import RcReduxModel from 'rc-redux-model/lib/index'
-
-const reduxModel = new RcReduxModel(models)
-const _rootThunk = reduxModel.thunk
-const _rootReducers = reduxModel.reducers
-
-const reducerList = combineReducers(_rootReducers)
-return createStore(reducerList, applyMiddleware(_rootThunk))
-```
-
-4. 在页面中使用
-
-请注意，这里的 action 都是异步 action，内部中间件的实现方式参考 `redux-thunk`，也就是说，我们 `dispatch` 一个 `action` 都是对应的一个方法，看代码 :
-
-```js
-class MyComponents extends React.PureComponent {
-  componentDidMount() {
-    // demo1 : 通过发起一个 action 获取 state.userModel.userInfo.name
-    const userName = this.props.dispatch({
-      type: 'userModel/getUserName',
-    })
-    console.log(userName) // PDK
-
-    // demo2 : 发起一个同步action，修改 reducers中的 state.userModel.userInfo.name
-    this.props.dispatch({
-      type: 'userModel/storeInfo',
-      payload: {
-        name: 'demo3',
-      },
-    })
-
-    // demo3: 发起一个直接修改state的action （不推荐此方法！！！）
-    this.props.dispatch({
-      type: 'userModel/changeuserInfo',
-      payload: {
-        userInfo: {
-          name: '哈哈哈哈',
-        },
-      },
-    })
-
-    // demo4: 发起一个异步 action，当请求完成之后再修改 reducers 的值
-    // 具体的请求，在 model.action 中自己写，支持 Promise，之前需要 callback 回调请求后的数据，现在直接 then 获取
-    this.props
-      .dispatch({
-        type: 'userModel/fetchUserInfo',
-      })
-      .then((res) => {
-        console.log(res)
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-
-    // demo5: 发起一个默认提供的 action，根据用户的 key 转发，直接修改 state 的值 （推荐此方法）
-    this.props.dispatch({
-      type: 'userModel/setStore',
-      payload: {
-        key: 'userInfo',
-        values: {
-          name: 'setStore_name',
-        },
-      },
-    })
-  }
-}
-```
 
 ## API
 
