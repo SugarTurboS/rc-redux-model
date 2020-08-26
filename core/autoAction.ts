@@ -20,11 +20,11 @@ const autoAction = (model: IModelProps) => {
   // 遍历 state，给每一个值都自动注册修改此state的action
   stateKeys.forEach((key: string) => {
     const actionType = generateActionType(namespace, key)
-    if (!_wrapAutoAction[`change${key}`]) {
-      _wrapAutoAction[`change${key}`] = registerAction(actionType)
+    if (!_wrapAutoAction[`set${key}`]) {
+      _wrapAutoAction[`set${key}`] = registerAction(actionType)
     }
     if (!_wrapAutoReducers[`${actionType}`]) {
-      _wrapAutoReducers[`${actionType}`] = registerReducers(key, openSeamlessImmutable)
+      _wrapAutoReducers[`${actionType}`] = generateReducers(key, openSeamlessImmutable)
     }
   })
   // 允许重名情况下覆盖，以用户定义的为主
@@ -32,7 +32,7 @@ const autoAction = (model: IModelProps) => {
   _wrapAutoReducers = { ..._wrapAutoReducers, ...reducers }
 
   // 为了防止太多个state对应action，所以提供一个默认的action，根据用户传递的key，策略模式分配到对应的action
-  _wrapAutoAction['setStoreLib'] = generateDefaultAction(namespace)
+  _wrapAutoAction['setStore'] = generateDefaultAction(namespace)
   return { ...model, action: _wrapAutoAction, reducers: _wrapAutoReducers }
 }
 
@@ -44,7 +44,7 @@ const autoAction = (model: IModelProps) => {
  * @returns {string} actionType
  */
 const generateActionType = (namespace: string, key: string): string => {
-  return `${namespace.toUpperCase()}_STORE_LIB_${key.toUpperCase()}`
+  return `SET_${namespace.toUpperCase()}_${key.toUpperCase()}`
 }
 
 /**
@@ -66,7 +66,7 @@ const registerAction = (actionType: string): Function => {
  * @param {string} key - 当前的state key值
  * @param {boolean} openSeamlessImmutable - 是否开启Immutable
  */
-const registerReducers = (key: string, openSeamlessImmutable: boolean) => {
+const generateReducers = (key: string, openSeamlessImmutable: boolean) => {
   return (state: any, payload: any) => {
     // 判断类型是否一致，如 model.state 里边对某个state值类型是string，但是想修改为object，这也是不合理的
     const prevStateKeyType = Object.prototype.toString.call(state[key])
@@ -101,7 +101,7 @@ const registerReducers = (key: string, openSeamlessImmutable: boolean) => {
  * @desc 注册生成默认的action
  * @summary 使用方式
  * this.props.dispatch({
- *   type: '[model.namespace]/setStoreLib',
+ *   type: '[model.namespace]/setStore',
  *   payload: {
  *     key: [model.state.key]
  *     value: [your values]
@@ -122,7 +122,7 @@ const generateDefaultAction = (namespace: string) => {
     )
 
     dispatch({
-      type: `${namespace}/change${keyProps}`,
+      type: `${namespace}/set${keyProps}`,
       payload: currentAction.payload.values,
     })
   }

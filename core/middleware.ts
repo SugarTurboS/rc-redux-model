@@ -63,6 +63,8 @@ const registerMiddleWare = (models: any) => {
         ? currentModel.action[actionSelfName]
         : null
 
+      invariant(currentModelAction, `[${actionSelfName}] does not exist [${actionModelName}]!`)
+
       // redux-thunk 中是对其 action 进行类型判断，认为 function 类型的 action 就是异步 action
       // 而我们在 model.js 文件中对 action 的写法，都是 function 类型，等价于，我们的 action 都是异步的
       if (currentModelAction && typeof currentModelAction === 'function') {
@@ -79,15 +81,6 @@ const registerMiddleWare = (models: any) => {
           call: callAPI(dispatch),
         })
       }
-      const commitActionToReducer = actionToReducer(
-        currentModel,
-        actionModelName,
-        next
-      )
-      return commitActionToReducer({
-        ...action,
-        type: actionSelfName,
-      })
     }
     return next(action)
   }
