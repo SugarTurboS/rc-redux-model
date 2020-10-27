@@ -2,13 +2,11 @@
 
 [简体中文](./README.md) | English
 
+![](https://img.shields.io/npm/dependency-version/hox/peer/react?logo=react)
+![](https://img.shields.io/npm/v/rc-redux-model?logo=npm)
+![](https://img.shields.io/badge/license-MIT-yellow.svg)
 ![](https://img.shields.io/badge/author-彭道宽-important.svg)
 ![](https://img.shields.io/badge/team-SugarTurboS-critical.svg)
-![](https://img.shields.io/badge/category-Redux-blue.svg)
-![](https://img.shields.io/badge/category-React-yellowgreen.svg)
-![](https://img.shields.io/badge/rc--redux--modal-v1.0.3-green.svg)
-![](https://img.shields.io/badge/redux-^4.0.1-inactive.svg)
-![](https://img.shields.io/badge/license-MIT-yellow.svg)
 
 > Refer to dva's data flow solution and redux-thunk, internally implement middleware; provide default behavior action, call this action can directly modify any value in state, development is more convenient and concise, support Immutable ~
 
