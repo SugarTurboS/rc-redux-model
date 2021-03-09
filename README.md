@@ -163,7 +163,7 @@ hooks 的出现，让我们看到了处理复杂且重复逻辑的曙光，那�
 ```js
 // Usage with React Redux: Typing the useSelector hook & Typing the useDispatch hook
 // https://redux.js.org/recipes/usage-with-typescript#usage-with-react-redux
-import { useDispatch } from 'redux'
+import { useDispatch } from 'react-redux'
 
 export function useFetchUserInfo() {
   const dispatch = useDispatch()
