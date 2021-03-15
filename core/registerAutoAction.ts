@@ -89,6 +89,49 @@ const autoSetStoreAction = (namespace: string) => {
 };
 
 /**
+ * @desc 注册生成默认的action，可接收数组
+ * @summary 使用方式
+ * this.props.dispatch({
+ *   type: '[model.namespace]/setStoreList',
+ *   payload: [
+ *     {
+ *       key: model.state.key
+ *       values: your values
+ *     },{
+ *       key: model.state.key
+ *       values: your values
+ *     }
+ *   ]
+ * })
+ */
+const autoSetStoreListAction = (namespace: string) => {
+  return ({ currentAction, dispatch, getState }) => {
+    const currentModalState = getState()[namespace];
+    const stateKeys = Object.keys(currentModalState);
+    const payload = currentAction.payload || [];
+    const payloadType = Object.prototype.toString.call(payload);
+    invariantAction(
+      payloadType === '[object Array]',
+      `[action][setStoreList] payload must be array`
+    );
+
+    payload.map((s: { key: string; value: string }) => {
+      invariantAction(
+        stateKeys.includes(s.key),
+        `you didn't define the [${s.key}] in the model.state, please check for correctness`
+      );
+    });
+
+    payload.map((s: { key: string; values: string }) => {
+      dispatch({
+        type: `${namespace}/set${s.key}`,
+        payload: s.values,
+      });
+    });
+  };
+};
+
+/**
  * @description 为每个 model 的 state 自动注册 action 及 reducer
  * @param {RModal} model
  * @returns {RModal} newModal
@@ -113,6 +156,7 @@ module.exports = function (model: RModal): RModal {
     }
   });
   nextAction['setStore'] = autoSetStoreAction(namespace);
+  nextAction['setStoreList'] = autoSetStoreListAction(namespace);
 
   // 如果存在重复，以用户定义的为主
   nextAction = { ...nextAction, ...action };
