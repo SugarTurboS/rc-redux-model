@@ -1,73 +1,74 @@
-const invariant = require('invariant')
-const middleware = require('./middleware')
-const autoRegisterAction = require('./autoAction')
+const invariant = require('invariant');
+const middleware = require('./middleware');
+const registerAction = require('./registerAutoAction');
+
 /**
  * @desc RcReduxModel
- * @property {Object} models - 所有的 models
+ * @property {any} models - 所有的 models
  * @property {Object} reducers - 所有 model 下的 reducers，整合在一起，用于 redux.combineReducers
  * @property {Array} thunk - 自己实现的 thunk 中间件，对 dispatch 的增强
  */
 class RcReduxModel {
-  public models: any
-  public reducers: any
-  public thunk: any
+  public models: { [key: string]: any };
+  public reducers: any;
+  public thunk: any;
 
-  public constructor(models: Array<any>) {
-    this.models = {}
-    this.reducers = {}
-    this.thunk = []
-    this.start(models)
+  public constructor(models: any[]) {
+    this.models = {};
+    this.reducers = {};
+    this.thunk = [];
+    this.start(models);
   }
 
-  public start(models: Array<any>) {
-    let _wrapRegisterAutoModels = models.map((model: any) => {
-      return autoRegisterAction(model)
-    })
-    _wrapRegisterAutoModels.forEach((model: any) => {
-      this.registerModel(model, models)
-      this.reducers[model.namespace] = this.registerReducers(model)
-    })
-    this.thunk = middleware(_wrapRegisterAutoModels)
+  public start(models: any[]) {
+    let autoActionAndReducerModel = models.map((model: any) => {
+      return registerAction(model);
+    });
+    autoActionAndReducerModel.forEach((model: any) => {
+      this.registerModel(model, models);
+      this.reducers[model.namespace] = this.registerReducers(model);
+    });
+    this.thunk = middleware(autoActionAndReducerModel);
   }
 
-  public registerModel(model: any, models: Array<any>) {
-    invariant(model.namespace, `model's namespace is undefined`)
+  public registerModel(model: any, models: any[]) {
+    invariant(model.namespace, `model's namespace is undefined`);
     invariant(
       typeof model.namespace === 'string',
       `model's namespace should be string, but got ${typeof model.namespace}`
-    )
+    );
     const duplicateModel = models.filter(
       (mod: any) => mod.namespace === model.namespace
-    )
+    );
     invariant(
       duplicateModel.length <= 1,
       `model's namespace should be unique, but now got the same namespace length = ${duplicateModel.length}, with the same namespace is ${model.namespace}`
-    )
+    );
     if (!this.models[model.namespace]) {
-      this.models[model.namespace] = model
+      this.models[model.namespace] = model;
     }
   }
 
   public registerReducers(model: any) {
-    const { namespace, state, reducers } = model
-    
-    invariant(reducers, `model's reducers must be defined, but got undefined`)
+    const { namespace, state, reducers } = model;
 
-    const reducersActionTypes = Object.keys(reducers)
+    invariant(reducers, `model's reducers must be defined, but got undefined`);
+
+    const reducersActionTypes = Object.keys(reducers);
 
     return (storeState: any, storeAction: any) => {
-      const newState = storeState || state
-      const reducersActionKeys = storeAction.type.split('/')
-      const reducersActionModelName = reducersActionKeys[0]
-      const reducersActionSelfName = reducersActionKeys[1]
+      const newState = storeState || state;
+      const reducersActionKeys = storeAction.type.split('/');
+      const reducersActionModelName = reducersActionKeys[0];
+      const reducersActionSelfName = reducersActionKeys[1];
 
-      if (reducersActionModelName !== namespace) return newState
+      if (reducersActionModelName !== namespace) return newState;
       if (reducersActionTypes.includes(reducersActionSelfName)) {
-        return reducers[reducersActionSelfName](newState, storeAction.payload)
+        return reducers[reducersActionSelfName](newState, storeAction.payload);
       }
-      return newState
-    }
+      return newState;
+    };
   }
 }
 
-module.exports = RcReduxModel
+module.exports = RcReduxModel;

@@ -54,6 +54,7 @@ const appModel = {
     appData: {
       name: 'app',
     },
+    appAuthor: '彭道宽'
   },
   action: {
     getAppName: ({ getState }) => {

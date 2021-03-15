@@ -79,6 +79,22 @@ describe('rc-redux-model init success', () => {
         })
         next()
       })
+      // 执行自动注册的action，支持数组形式修改 reducers 的值
+      it('can handler auto register action by array to change reducers', (next) => {
+        actionHandler({
+          type: 'appModel/setStoreList',
+          payload: [{
+            key: 'appData',
+            values: {
+              name: 'ABCD',
+            },
+          }, {
+            key: 'appAuthor',
+            values: 'PDK'
+          }],
+        })
+        next()
+      })
       it('get trigger auto register action reducers value', (next) => {
         const appName = actionHandler({
           type: 'appModel/getAppName',

@@ -1,16 +1,13 @@
-const invariantRename = require('invariant')
+const invariantMiddleWare = require('invariant');
 
-const getCurrentModel = (
-  actionModelName: string,
-  models: Array<any>
-) => {
-  if (models.length === 0) return null
+const getCurrentModel = (actionModelName: string, models: Array<any>) => {
+  if (models.length === 0) return null;
   const findModel = models.filter(
     (model: any) => model.namespace === actionModelName
-  )
-  if (findModel.length > 0) return findModel[0]
-  return null
-}
+  );
+  if (findModel.length > 0) return findModel[0];
+  return null;
+};
 
 const actionToReducer = (
   currentModel: any,
@@ -23,58 +20,60 @@ const actionToReducer = (
         next({
           type: `${actionModelName}/${reducerAction.type}`,
           payload: reducerAction.payload,
-        })
+        });
       }
     }
-  }
-}
+  };
+};
 
 const callAPI = (dispatch: any) => async (service: any, params: any) => {
-  let result = {}
+  let result = {};
   try {
-    result = await service(params)
+    result = await service(params);
   } catch (error) {
-    return Promise.reject(params)
+    return Promise.reject(params);
   }
 
-  return Promise.resolve(result)
-}
+  return Promise.resolve(result);
+};
 
-const registerMiddleWare = (models: any) => {
+const registerMiddleWare = (models: any[]) => {
   return ({ dispatch, getState }) => (next: any) => (action: any) => {
-    const actionKeyTypes = action.type.split('/')
-    invariantRename(
+    const actionKeyTypes = action.type.split('/');
+    invariantMiddleWare(
       actionKeyTypes.length <= 2,
       `dispatch action only accept [namespace/actionName], but got ${action.type}`
-    )
-    const actionModelName = actionKeyTypes[0]
-    const actionSelfName = actionKeyTypes[1]
-    const currentModel = getCurrentModel(actionModelName, models)
+    );
+    const actionModelName = actionKeyTypes[0];
+    const actionSelfName = actionKeyTypes[1];
+    const currentModel = getCurrentModel(actionModelName, models);
     if (currentModel) {
       const currentModelAction = currentModel.action
         ? currentModel.action[actionSelfName]
-        : null
+        : null;
 
-      invariantRename(currentModelAction, `[${actionSelfName}] does not exist [${actionModelName}]!`)
+      invariantMiddleWare(
+        currentModelAction,
+        `[${actionSelfName}] does not exist [${actionModelName}]!`
+      );
 
       if (currentModelAction && typeof currentModelAction === 'function') {
         const commitActionToReducer = actionToReducer(
           currentModel,
           actionModelName,
           next
-        )
+        );
         return currentModelAction({
           dispatch,
           getState,
           currentAction: action,
           commit: commitActionToReducer,
           call: callAPI(dispatch),
-        })
+        });
       }
     }
-    return next(action)
-  }
-}
+    return next(action);
+  };
+};
 
-
-module.exports = registerMiddleWare
+module.exports = registerMiddleWare;
