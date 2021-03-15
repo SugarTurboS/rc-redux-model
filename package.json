@@ -1,11 +1,10 @@
 {
   "name": "rc-redux-model",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "react状态管理，提供一种更加舒适的写法，让你简洁优雅的去写状态管理；借鉴 dva 的数据流方案，参考 redux-thunk，内部实现中间件；提供默认行为 action，调用此 action 可直接修改 state 里的任意值，开发更加方便简洁，支持 Immutable，让你从毫无意义的重复工作中解脱",
   "main": "/lib/index.js",
   "scripts": {
     "jest-cli": "jest test",
-    "demo-cli": "cd demo && ts-node app.ts",
     "build-cli": "./node_modules/.bin/babel core --out-dir lib --extensions '.ts'"
   },
   "repository": {

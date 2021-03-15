@@ -19,6 +19,12 @@
 - 内置 `seamless-immutable` ，只需开启配置，让你的数据不可变
 - 默认检测不规范的赋值与类型错误，让你的数据更加健壮
 
+## ⛏ 安装
+
+```bash
+npm install --save rc-redux-model
+```
+
 ## ⏳ 前世今生
 
 - [why rc-redux-model and what's rc-redux-model](https://github.com/PDKSophia/rc-redux-model/issues/1)
@@ -29,14 +35,9 @@
 **rc-redux-model 出发点在于解决繁琐重复的工作，store 文件分散，state 类型和赋值错误的问题，为此，对于跟我一样的用户，提供了一个写状态管理较为[舒服]的书写方式，大部分情况下兼容原先项目**~
 
 - 为了解决[store 文件分散]，借鉴了 dva 状态管理的方式，一个 model 中写 `action、state、reducers`
-- 为了解决[繁琐重复的工作]，提供默认的 action，用户不需要自己写修改 state 的 action，只需要调用默认提供的 `[model.namespace/setStore]` 即可，从而将一些重复的代码从 model 文件中剔除
+- 为了解决[繁琐重复的工作]，提供默认的 action，用户不需要自己写修改 state 的 action 和 reducer，只需要调用默认提供的 `[model.namespace/setStore]` 即可，从而将一些重复性的代码从 model 文件中剔除，也可通过 `[model.namespace/setStoreList]` 方式批量修改 state
 - 为了解决[state 类型和赋值错误]，在每次修改 state 值时候，都会进行检测，如果不通过则报错提示
 
-## ⛏ 安装
-
-```bash
-npm install --save rc-redux-model
-```
 
 ## 🚀 使用
 
@@ -60,7 +61,7 @@ const userModel = {
     },
   },
   action: {
-    // demo: 发起一个异步请求，修改 global.model的 loading 状态，异步请求结束之后，修改 reducers
+    // demo: 发起一个异步请求，修改 globalModel的 loading 状态，异步请求结束之后，修改 reducers
     // 此异步逻辑，可自行处理，如果采用 call，那么会通过 Promise 包裹一层帮你转发
     fetchUserInfo: async ({ dispatch, call }) => {
       // 请求前，将 globalModel 中的 loading 置为 true
@@ -140,17 +141,25 @@ class MyComponents extends React.PureComponent {
       payload: {
         key: 'userInfo',
         values: {
-          name: 'setStore_name',
+          name: 'sugarTeam',
         },
       },
     })
-    // demo2: 调用自动生成的默认action，直接修改 state.classId 的值 （推荐此方法）
+    // demo2: 调用自动生成的默认action，以数组形式修改state （推荐此方法）
     this.props.dispatch({
-      type: 'userModel/setStore',
-      payload: {
-        key: 'classId',
-        values: 'sugarTeam2020',
-      },
+      type: 'userModel/setStoreList',
+      payload: [
+        {
+          key: 'userInfo',
+          values: {
+            name: 'sugarTeam',
+          },
+        },
+        {
+          key: 'classId',
+          values: 'sugarTurboS-666',
+        }
+      ]
     })
   }
 }
@@ -169,7 +178,7 @@ export function useFetchUserInfo() {
   const dispatch = useDispatch()
   return async (userId: string) => {
     // 这里我选择自己处理异步，异步请求完后，再把数据传到 reducer 中
-    const res = await callAPI(userId)
+    const res = await MyAdapterAPI(userId)
     if (res.code === 200) {
       dispatch({
         type: 'userModel/setStore',
@@ -179,6 +188,20 @@ export function useFetchUserInfo() {
         },
       })
     }
+
+    // 也可以在 model 中写请求的 action
+    dispatch({
+      type: 'userModel/fetchUserInfo',
+      payload: userId
+    }).then((res) => {
+      dispatch({
+        type: 'userModel/setStore',
+        payload: {
+          key: 'userInfo',
+          values: res.data,
+        },
+      })
+    })
   }
 }
 ```
@@ -202,16 +225,35 @@ export function useFetchUserInfo() {
 ## 提供的默认 Action
 
 ```js
- @desc 注册生成默认的action
+ @desc 注册生成默认的action，一次只能修改一个 state
  @summary 使用方式
 
  this.props.dispatch({
    type: '[model.namespace]/setStore',
    payload: {
-     key: [model.state.key]
-     values: [your values]
+     key: `${model.state.key}`
+     values: `${your values}`
    }
  })
+```
+
+```js
+@desc 注册生成默认的action，可批量修改 state
+@summary 使用方式
+
+this.props.dispatch({
+  type: '[model.namespace]/setStoreList',
+  payload: [
+    {
+      key: `${model.state.key}`
+      values: `${your values}`
+    },
+    {
+      key: `${model.state.key}`
+      values: `${your values}`
+    }
+  ]
+})
 ```
 
 ## Maintainers
