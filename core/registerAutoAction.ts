@@ -110,13 +110,13 @@ const autoSetStoreListAction = (namespace: string) => {
     const stateKeys = Object.keys(currentModalState);
     const payload = currentAction.payload || [];
     const payloadType = Object.prototype.toString.call(payload);
-    invariantAction(
+    invariant(
       payloadType === '[object Array]',
       `[action][setStoreList] payload must be array`
     );
 
     payload.map((s: { key: string; value: string }) => {
-      invariantAction(
+      invariant(
         stateKeys.includes(s.key),
         `you didn't define the [${s.key}] in the model.state, please check for correctness`
       );
@@ -136,7 +136,7 @@ const autoSetStoreListAction = (namespace: string) => {
  * @param {RModal} model
  * @returns {RModal} newModal
  */
-module.exports = function (model: RModal): RModal {
+export default function (model: RModal): RModal {
   let nextAction = {};
   let nextReducers = {};
 
