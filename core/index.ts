@@ -37,9 +37,7 @@ class RcReduxModel {
       typeof model.namespace === 'string',
       `model's namespace should be string, but got ${typeof model.namespace}`
     );
-    const duplicateModel = models.filter(
-      (mod: RModal) => mod.namespace === model.namespace
-    );
+    const duplicateModel = models.filter((mod: RModal) => mod.namespace === model.namespace);
     invariant(
       duplicateModel.length <= 1,
       `model's namespace should be unique, but now got the same namespace length = ${duplicateModel.length}, with the same namespace is ${model.namespace}`

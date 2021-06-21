@@ -22,7 +22,7 @@ const autoAction = (actionTypeToReducer: string): Function => {
  * @param {boolean} openSeamlessImmutable - 是否开启Immutable
  * @returns {Function}
  */
-const autoReducers = (stateKey: string, openSeamlessImmutable: boolean) => {
+const autoReducers = (stateKey: string, openSeamlessImmutable: boolean | undefined) => {
   return (state: any, payload: any) => {
     const prevStateKeyType = Object.prototype.toString.call(state[stateKey]);
     const nextStateKeyType = Object.prototype.toString.call(payload);
@@ -33,13 +33,13 @@ const autoReducers = (stateKey: string, openSeamlessImmutable: boolean) => {
 
     if (nextStateKeyType === '[object Object]' || nextStateKeyType === '[object Array]') {
       if (openSeamlessImmutable) {
-        return Immutable.merge(state, {
+        return (Immutable as any).merge(state, {
           [stateKey]: payload,
         });
       }
     } else {
       if (openSeamlessImmutable) {
-        return Immutable.set(state, `${stateKey}`, payload);
+        return (Immutable as any).set(state, `${stateKey}`, payload);
       }
     }
     return {
@@ -105,24 +105,21 @@ const autoSetStoreAction = (namespace: string) => {
  * })
  */
 const autoSetStoreListAction = (namespace: string) => {
-  return ({ currentAction, dispatch, getState }) => {
+  return ({ currentAction, dispatch, getState }: any) => {
     const currentModalState = getState()[namespace];
     const stateKeys = Object.keys(currentModalState);
     const payload = currentAction.payload || [];
     const payloadType = Object.prototype.toString.call(payload);
-    invariant(
-      payloadType === '[object Array]',
-      `[action][setStoreList] payload must be array`
-    );
+    invariant(payloadType === '[object Array]', `[action][setStoreList] payload must be array`);
 
-    payload.map((s: { key: string; value: string }) => {
+    payload.forEach((s: { key: string; value: string }) => {
       invariant(
         stateKeys.includes(s.key),
         `you didn't define the [${s.key}] in the model.state, please check for correctness`
       );
     });
 
-    payload.map((s: { key: string; values: string }) => {
+    payload.forEach((s: { key: string; values: string }) => {
       dispatch({
         type: `${namespace}/set${s.key}`,
         payload: s.values,
@@ -137,22 +134,19 @@ const autoSetStoreListAction = (namespace: string) => {
  * @returns {RModal} newModal
  */
 export default function (model: RModal): RModal {
-  let nextAction = {};
-  let nextReducers = {};
+  let nextAction: any = {};
+  let nextReducers: any = {};
 
   const { namespace, state = {}, action = {}, reducers = {}, openSeamlessImmutable } = model;
   if (Object.keys(state).length === 0) return model;
 
-  Object.keys(state).map((stateKey: string) => {
+  Object.keys(state).forEach((stateKey: string) => {
     const actionTypeToReducer = generateReducerActionType(namespace, stateKey);
     if (!nextAction[`set${stateKey}`]) {
       nextAction[`set${stateKey}`] = autoAction(actionTypeToReducer);
     }
     if (!nextReducers[`${actionTypeToReducer}`]) {
-      nextReducers[`${actionTypeToReducer}`] = autoReducers(
-        stateKey,
-        openSeamlessImmutable
-      );
+      nextReducers[`${actionTypeToReducer}`] = autoReducers(stateKey, openSeamlessImmutable);
     }
   });
   nextAction['setStore'] = autoSetStoreAction(namespace);
