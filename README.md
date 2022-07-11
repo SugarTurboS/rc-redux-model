@@ -258,6 +258,11 @@ dispatch({
 })
 ```
 
+## Trends
+
+You can check the downloads of the package by [https://npmtrends.com/rc-redux-model](https://npmtrends.com/rc-redux-model)
+
+
 ## Maintainers
 
 [@PDKSophia](https://github.com/PDKSophia)
